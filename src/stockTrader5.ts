@@ -11,7 +11,7 @@ export async function main(ns: NS) {
   ns.tail();
 
   // Globals
-  const scriptTimer = 2000; // Time script waits
+  // const scriptTimer = 2000; // Time script waits
   const moneyKeep = 1000000000; // Failsafe Money
   //const moneyKeep = 1000000;
   const stockBuyOver_Long = 0.6; // Buy stocks when forecast is over this %
@@ -200,7 +200,7 @@ export async function main(ns: NS) {
     ns.print(new Date().toLocaleTimeString() + ' - Running ...');
     ns.print('--------------------------------');
 
-    await ns.sleep(scriptTimer);
+    await ns.stock.nextUpdate();
 
     // Clearing log makes the display more static
     // If you need the stock history, save it to a file

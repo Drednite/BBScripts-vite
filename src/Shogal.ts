@@ -19,7 +19,7 @@ const WANTED_PENALTY_TRESHOLD = 0.99;
 const WARFARE_TRESHOLD = 2;
 const MEMBERS_MIN = 6;
 const MEMBERS_MAX = 12;
-const SLEEP_TIME = 10000;
+// const SLEEP_TIME = 10000;
 /** @param {NS} ns **/
 export async function main(ns: NS) {
   const gang = ns.gang;
@@ -135,6 +135,6 @@ export async function main(ns: NS) {
       // Do the default task (autoselected or called with args[0])
       setAutoTask(member, Math.random() < TRAIN_CHANCE ? TASK_TRAIN : task);
     }
-    await ns.sleep(SLEEP_TIME);
+    await gang.nextUpdate();
   }
 }

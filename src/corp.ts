@@ -404,7 +404,7 @@ export async function main(ns: NS) {
         ns.tprint('hit the default case in corp script, something went wrong.');
         return;
     }
-    await ns.sleep(100);
+    await corp.nextUpdate();
   }
   ///////////////////////////////////////////////////////////////////////////////////////////
   /** makes typing stuff easier */

@@ -304,18 +304,19 @@ export async function main(ns: NS): Promise<void> {
       } else {
         curCount = bb.getActionCountRemaining(currentTask.type, currentTask.name);
         ns.setTitle(ns.sprintf('[%d/%d] %s', bb.getActionCurrentTime() / 1000, finishTime / 1000, currentTask.name));
-        await ns.sleep(975); // 1000 - .script exec time (ms)
+        await bb.nextUpdate(); // 1000 - .script exec time (ms)
       }
     }
     if (currentTask.type == 'General') {
       ns.setTitle(currentTask.name);
       let waitTime = finishTime - bb.getActionCurrentTime();
       if (bb.getBonusTime() > 5000) {
-        waitTime = waitTime / 5;
+        waitTime = Math.ceil(waitTime / 5000) * 1000;
       }
-      waitTime = Math.max(waitTime, 975);
+      waitTime = Math.max(waitTime, 1000);
       // ns.print(ns.tFormat(waitTime));
       await ns.sleep(waitTime);
+      return true;
     }
     return false;
   }
@@ -440,7 +441,12 @@ export async function main(ns: NS): Promise<void> {
 
     // waitTime = adjTime(waitTime);
     // await ns.sleep(waitTime);
-    await actWaiter();
+    const succ = await actWaiter();
+    if (succ) {
+      ns.printf(colorPicker("|%'=-37s|", Color.green), '>>>Success');
+    } else {
+      ns.printf(colorPicker("|%'=-37s|", Color.red), '>>>Fail');
+    }
     upgrades();
   }
 }
