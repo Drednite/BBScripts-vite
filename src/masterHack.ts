@@ -33,7 +33,7 @@ export async function main(ns: NS) {
   const growWeakenRatio = 0.9; // How many threads are used for growing vs. weaking (90:10).
   let maxGrowThreads;
   let sleepTime, sleepTimeHack, sleepTimeGrow, sleepTimeWeaken;
-  const sleepDelay = 200; // Sleep delay should range between 20ms and 200ms as per the documentation. I'll keep the default at 200, adjust as needed.
+  const sleepDelay = 100; // Sleep delay should range between 20ms and 200ms as per the documentation. I'll keep the default at 200, adjust as needed.
   let i, batches, batchSize;
   // ns.atExit((ns) => {
   //   ns.tprint(ns.getScriptName() + ns.args[0] + ns.args[1] + " ended");
@@ -226,7 +226,7 @@ export async function main(ns: NS) {
               sleepTime,
               1 + 2 * i,
             ); // Second weaken script runs after the first
-            sleepTime = sleepTimeWeaken - sleepTimeGrow + sleepDelay;
+            sleepTime = Math.max(sleepTimeWeaken - sleepTimeGrow + sleepDelay, 0);
             ns.exec(
               growScript,
               serverToHackFrom.hostname,
@@ -235,7 +235,7 @@ export async function main(ns: NS) {
               sleepTime,
               i,
             ); // Grow script ends before second weaken script
-            sleepTime = sleepTimeWeaken - sleepTimeHack - sleepDelay;
+            sleepTime = Math.max(sleepTimeWeaken - sleepTimeHack - sleepDelay, 0);
             ns.exec(
               hackScript,
               serverToHackFrom.hostname,

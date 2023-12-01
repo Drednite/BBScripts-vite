@@ -31,11 +31,8 @@ export async function main(ns: NS) {
   });
   if (flags.ccCheat) {
     ns.atExit(async () => {
-      ns.spawn('ccCheat.js', { spawnDelay: 10, preventDuplicates: true });
-      // while(!ns.run("ccCheat.js")){
-      //   await ns.sleep(100);
-      // }
       ns.closeTail();
+      ns.spawn('ccCheat.js', { spawnDelay: 10, preventDuplicates: true });
     });
   }
   deployed = ns.isRunning('contractor.js', 'home', true);
