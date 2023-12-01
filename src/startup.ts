@@ -2,7 +2,10 @@ import { NS } from '@ns';
 
 /** @param {NS} ns */
 export async function main(ns: NS) {
-  const startList: (string | string[])[] = [['crawler.js', '--daemon', '--share', '-o']];
+  // eslint-disable-next-line prettier/prettier
+  const startList: (string | string[])[] = [
+    ['crawler.js', '--daemon', '--share', '-o']
+  ];
   if (Date.now() - ns.getResetInfo().lastAugReset < 1.8e6) {
     startList.push('whip.js');
   }
@@ -32,6 +35,10 @@ export async function main(ns: NS) {
 
   if (ns.gang.inGang()) {
     startList.push('Shogal.js');
+  }
+
+  if (ns.stock.hasTIXAPIAccess() && ns.stock.has4SDataTIXAPI()) {
+    startList.push('stockTrader5.js');
   }
 
   startList.forEach((call) => {

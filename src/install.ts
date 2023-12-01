@@ -26,6 +26,20 @@ export async function main(ns: NS): Promise<void> {
   // availableAugments.forEach((aug) => {
   //   ns.print(aug + ": " + ns.formatNumber(sin.getAugmentationBasePrice(aug)));
   // })
+  if (ns.isRunning('stockTrader5.js')) {
+    ns.kill('stockTrader5.js');
+    const book = ns.stock.getSymbols();
+    for (const stock in book) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [long, longPrice, short, shortPrice] = ns.stock.getPosition(stock);
+      if (long > 0) {
+        ns.stock.sellStock(stock, long);
+      }
+      if (short > 0) {
+        ns.stock.sellShort(stock, short);
+      }
+    }
+  }
 
   ns.hacknet.spendHashes('Sell for Money', undefined, ns.hacknet.numHashes() / 4);
   for (const aug of availableAugments) {
