@@ -1,67 +1,66 @@
-import { NS } from "@ns";
-import { getAllServers } from "/helpers";
+import { NS } from '@ns';
+import { getAllServers } from '/src/helpers';
 
 /** @param {NS} ns */
 export async function main(ns: NS): Promise<void> {
   const continuous = ns.args[0];
-  
+
+  // eslint-disable-next-line @typescript-eslint/ban-types
   const solvers = new Map<string, Function>([
-    ["Find Largest Prime Factor", largestPrimeFactor],
-    ["Subarray with Maximum Sum", maxSumSubarray],
-    ["Total Ways to Sum", waysToSum],
-    ["Total Ways to Sum II", wayToSum2],
-    ["Spiralize Matrix", spiralizeMatrix],
-    ["Array Jumping Game", arrayJumping],
-    ["Array Jumping Game II", arrayJumping2],
-    ["Merge Overlapping Intervals", mergeIntervals],
-    ["Generate IP Addresses", genIPAddresses],
-    ["Algorithmic Stock Trader I", algoStockTrader1],
-    ["Algorithmic Stock Trader II", algoStockTrader2],
-    ["Algorithmic Stock Trader III", algoStockTrader3],
-    ["Algorithmic Stock Trader IV", algoStockTrader4],
-    ["Minimum Path Sum in a Triangle", minPathSumTriangle],
-    ["Unique Paths in a Grid I", uniquePaths1],
-    ["Unique Paths in a Grid II", uniquePaths2],
-    ["Shortest Path in a Grid", shortestPath],
-    ["Sanitize Parentheses in Expression", sanitizeParentheses],
-    ["Find All Valid Math Expressions", findAllValidMathExpressions],
-    ["HammingCodes: Integer to Encoded Binary", intToEncodedBinary],
-    ["HammingCodes: Encoded Binary to Integer", encBinaryToInt],
-    ["Proper 2-Coloring of a Graph", colorGraph],
-    ["Compression I: RLE Compression", rleCompression],
-    ["Compression II: LZ Decompression", lzDecompression],
-    ["Compression III: LZ Compression", lzCompression],
-    ["Encryption I: Caesar Cipher", caesarCipher],
-    ["Encryption II: Vigenère Cipher", vigenereEncryption]
+    ['Find Largest Prime Factor', largestPrimeFactor],
+    ['Subarray with Maximum Sum', maxSumSubarray],
+    ['Total Ways to Sum', waysToSum],
+    ['Total Ways to Sum II', wayToSum2],
+    ['Spiralize Matrix', spiralizeMatrix],
+    ['Array Jumping Game', arrayJumping],
+    ['Array Jumping Game II', arrayJumping2],
+    ['Merge Overlapping Intervals', mergeIntervals],
+    ['Generate IP Addresses', genIPAddresses],
+    ['Algorithmic Stock Trader I', algoStockTrader1],
+    ['Algorithmic Stock Trader II', algoStockTrader2],
+    ['Algorithmic Stock Trader III', algoStockTrader3],
+    ['Algorithmic Stock Trader IV', algoStockTrader4],
+    ['Minimum Path Sum in a Triangle', minPathSumTriangle],
+    ['Unique Paths in a Grid I', uniquePaths1],
+    ['Unique Paths in a Grid II', uniquePaths2],
+    ['Shortest Path in a Grid', shortestPath],
+    ['Sanitize Parentheses in Expression', sanitizeParentheses],
+    ['Find All Valid Math Expressions', findAllValidMathExpressions],
+    ['HammingCodes: Integer to Encoded Binary', intToEncodedBinary],
+    ['HammingCodes: Encoded Binary to Integer', encBinaryToInt],
+    ['Proper 2-Coloring of a Graph', colorGraph],
+    ['Compression I: RLE Compression', rleCompression],
+    ['Compression II: LZ Decompression', lzDecompression],
+    ['Compression III: LZ Compression', lzCompression],
+    ['Encryption I: Caesar Cipher', caesarCipher],
+    ['Encryption II: Vigenère Cipher', vigenereEncryption],
   ]);
-  
+
   const serverList = await getAllServers(ns);
-  do{
+  do {
     for (let x = 0; x < serverList.length; x++) {
-      let server = serverList[x];
-      let files = ns.ls(server, ".cct");
+      const server = serverList[x];
+      const files = ns.ls(server, '.cct');
       for (let i = 0; i < files.length; i++) {
-        let conType = ns.codingcontract.getContractType(files[i], server)
-        let solver = solvers.get(conType)!;
-        let data = ns.codingcontract.getData(files[i], server);
-        let outcome = ""
-        
-        let ans = solver(data);
-        ns.print(conType + "([" + data + "])")
-        outcome = ns.codingcontract.attempt(ans, files[i], server)
-        
-        if (outcome == "") {
-          outcome = "WARN: Contract " + files[i] + conType + " @ " + server + " failed."
+        const conType = ns.codingcontract.getContractType(files[i], server);
+        const solver = solvers.get(conType)!;
+        const data = ns.codingcontract.getData(files[i], server);
+        let outcome = '';
+
+        const ans = solver(data);
+        ns.print(conType + '([' + data + '])');
+        outcome = ns.codingcontract.attempt(ans, files[i], server);
+
+        if (outcome == '') {
+          outcome = 'WARN: Contract ' + files[i] + conType + ' @ ' + server + ' failed.';
         }
         // ns.tprint(outcome);
         await ns.sleep(600);
       }
     }
     await ns.sleep(1000);
-  }
-  while(continuous);
+  } while (continuous);
 }
-
 
 /** @param {number} data */
 export function largestPrimeFactor(data: number): number {
@@ -73,19 +72,17 @@ export function largestPrimeFactor(data: number): number {
     }
     ++fac;
   }
-  return (n === 1 ? fac - 1 : n);
+  return n === 1 ? fac - 1 : n;
 }
-
 
 /** @param {number[]} data */
 export function maxSumSubarray(data: number[]): number {
-  const nums = data.slice()
+  const nums = data.slice();
   for (let i = 1; i < nums.length; i++) {
-    nums[i] = Math.max(nums[i], nums[i] + nums[i - 1])
+    nums[i] = Math.max(nums[i], nums[i] + nums[i - 1]);
   }
-  return Math.max.apply(Math, nums)
+  return Math.max(...nums);
 }
-
 
 /**@param {number[]} array */
 export function sum(array: number[]): number {
@@ -96,20 +93,18 @@ export function sum(array: number[]): number {
   return temp;
 }
 
-
 /**@param {number} data */
 function waysToSum(data: number): number {
-  const ways = [1]
-  ways.length = data + 1
-  ways.fill(0, 1)
+  const ways = [1];
+  ways.length = data + 1;
+  ways.fill(0, 1);
   for (let i = 1; i < data; ++i) {
     for (let j = i; j <= data; ++j) {
-      ways[j] += ways[j - i]
+      ways[j] += ways[j - i];
     }
   }
-  return ways[data]
+  return ways[data];
 }
-
 
 /**@param {[number, number[]]} data */
 export function wayToSum2(data: [number, number[]]): number {
@@ -125,7 +120,6 @@ export function wayToSum2(data: [number, number[]]): number {
   }
   return ways[n];
 }
-
 
 /** @param {number[][]} data */
 export function spiralizeMatrix(data: number[][]): number[] {
@@ -148,7 +142,7 @@ export function spiralizeMatrix(data: number[][]): number[] {
       done = true;
       continue;
     }
-    
+
     // Right
     for (let row = u; row <= d; row++) {
       spiral[k] = data[row][r];
@@ -158,7 +152,7 @@ export function spiralizeMatrix(data: number[][]): number[] {
       done = true;
       continue;
     }
-    
+
     // Down
     for (let col = r; col >= l; col--) {
       spiral[k] = data[d][col];
@@ -168,7 +162,7 @@ export function spiralizeMatrix(data: number[][]): number[] {
       done = true;
       continue;
     }
-    
+
     // Left
     for (let row = d; row >= u; row--) {
       spiral[k] = data[row][l];
@@ -179,28 +173,24 @@ export function spiralizeMatrix(data: number[][]): number[] {
       continue;
     }
   }
-  
+
   return spiral;
 }
-
 
 /** @param {number[]} data */
 export function arrayJumping(data: number[]): 0 | 1 {
   if (data[0] + 1 >= data.length) {
     return 1;
-  }
-  else if (data[0] == 0) {
+  } else if (data[0] == 0) {
     return 0;
-  }
-  else {
-    let temp = [];
+  } else {
+    const temp = [];
     for (let i = 0; i < data[0]; i++) {
-      temp.push(arrayJumping(data.slice(i + 1)))
+      temp.push(arrayJumping(data.slice(i + 1)));
     }
     return temp.some((value) => value == 1) ? 1 : 0;
   }
 }
-
 
 /** @param {number[]} data  */
 export function arrayJumping2(data: number[]): number {
@@ -226,59 +216,56 @@ export function arrayJumping2(data: number[]): number {
   return jumps;
 }
 
-
 /** @param {[number, number][]} data */
 export function mergeIntervals(data: [number, number][]): string {
-  const intervals = data.slice()
+  const intervals = data.slice();
   intervals.sort(function (a, b) {
-    return a[0] - b[0]
-  })
-  const result = []
-  let start = intervals[0][0]
-  let end = intervals[0][1]
+    return a[0] - b[0];
+  });
+  const result = [];
+  let start = intervals[0][0];
+  let end = intervals[0][1];
   for (const interval of intervals) {
     if (interval[0] <= end) {
-      end = Math.max(end, interval[1])
+      end = Math.max(end, interval[1]);
     } else {
-      result.push([start, end])
-      start = interval[0]
-      end = interval[1]
+      result.push([start, end]);
+      start = interval[0];
+      end = interval[1];
     }
   }
-  result.push([start, end])
-  const sanitizedResult = convert2DArrayToString(result)
-  return sanitizedResult
+  result.push([start, end]);
+  const sanitizedResult = convert2DArrayToString(result);
+  return sanitizedResult;
 }
-
 
 /** @param {number[][]} arr  */
 function convert2DArrayToString(arr: number[][]): string {
-  const components: string[] = []
+  const components: string[] = [];
   arr.forEach(function (e) {
-    let s = e.toString()
-    s = ['[', s, ']'].join('')
-    components.push(s)
-  })
-  return components.join(',').replace(/\s/g, '')
+    let s = e.toString();
+    s = ['[', s, ']'].join('');
+    components.push(s);
+  });
+  return components.join(',').replace(/\s/g, '');
 }
-
 
 /** @param {string} data */
 export function genIPAddresses(data: string): string {
-  const ret = []
+  const ret = [];
   for (let a = 1; a <= 3; ++a) {
     for (let b = 1; b <= 3; ++b) {
       for (let c = 1; c <= 3; ++c) {
         for (let d = 1; d <= 3; ++d) {
           if (a + b + c + d === data.length) {
-            const A = parseInt(data.substring(0, a), 10)
-            const B = parseInt(data.substring(a, a + b), 10)
-            const C = parseInt(data.substring(a + b, a + b + c), 10)
-            const D = parseInt(data.substring(a + b + c, a + b + c + d), 10)
+            const A = parseInt(data.substring(0, a), 10);
+            const B = parseInt(data.substring(a, a + b), 10);
+            const C = parseInt(data.substring(a + b, a + b + c), 10);
+            const D = parseInt(data.substring(a + b + c, a + b + c + d), 10);
             if (A <= 255 && B <= 255 && C <= 255 && D <= 255) {
-              const ip = [A.toString(), '.', B.toString(), '.', C.toString(), '.', D.toString()].join('')
+              const ip = [A.toString(), '.', B.toString(), '.', C.toString(), '.', D.toString()].join('');
               if (ip.length === data.length + 3) {
-                ret.push(ip)
+                ret.push(ip);
               }
             }
           }
@@ -289,39 +276,35 @@ export function genIPAddresses(data: string): string {
   return ret.toString(); // Answer expected is the string representation of this array
 }
 
-
 /** @param {number[]} data  */
 export function algoStockTrader1(data: number[]): string {
-  let maxCur = 0
-  let maxSoFar = 0
+  let maxCur = 0;
+  let maxSoFar = 0;
   for (let i = 1; i < data.length; ++i) {
-    maxCur = Math.max(0, (maxCur += data[i] - data[i - 1]))
-    maxSoFar = Math.max(maxCur, maxSoFar)
+    maxCur = Math.max(0, (maxCur += data[i] - data[i - 1]));
+    maxSoFar = Math.max(maxCur, maxSoFar);
   }
-  return maxSoFar.toString()
+  return maxSoFar.toString();
 }
-
 
 /** @param {number[]} data */
 export function algoStockTrader2(data: number[]): number {
   data.push(0);
   let total = 0;
   let currentPrice = 0;
-  
+
   for (let i = 0; i < data.length - 1; i++) {
     if (currentPrice == 0 && data[i] < data[i + 1]) {
       total = total - data[i];
       currentPrice = data[i];
-    }
-    else if (currentPrice > 0 && data[i] > data[i + 1]) {
+    } else if (currentPrice > 0 && data[i] > data[i + 1]) {
       total = total + data[i];
       currentPrice = 0;
     }
   }
-  
+
   return total;
 }
-
 
 /**@param data */
 export function algoStockTrader3(data: number[]) {
@@ -335,16 +318,15 @@ export function algoStockTrader3(data: number[]) {
     release1 = Math.max(release1, hold1 + price);
     hold1 = Math.max(hold1, price * -1);
   }
-  
+
   return release2;
 }
-
 
 /**@param data */
 export function algoStockTrader4(data: [number, number[]]) {
   const k = data[0];
   const prices = data[1];
-  
+
   const len = prices.length;
   if (len < 2) {
     return 0;
@@ -354,10 +336,10 @@ export function algoStockTrader4(data: [number, number[]]) {
     for (let i = 1; i < len; ++i) {
       res += Math.max(prices[i] - prices[i - 1], 0);
     }
-    
+
     return res;
   }
-  
+
   const hold = [];
   const rele = [];
   hold.length = k + 1;
@@ -366,7 +348,7 @@ export function algoStockTrader4(data: [number, number[]]) {
     hold[i] = Number.MIN_SAFE_INTEGER;
     rele[i] = 0;
   }
-  
+
   let cur;
   for (let i = 0; i < len; ++i) {
     cur = prices[i];
@@ -375,24 +357,21 @@ export function algoStockTrader4(data: [number, number[]]) {
       hold[j] = Math.max(hold[j], rele[j - 1] - cur);
     }
   }
-  
-  return rele[k];
-  
-}
 
+  return rele[k];
+}
 
 /** @param data */
 function minPathSumTriangle(data: number[][]) {
-  const n = data.length
-  const dp = data[n - 1].slice()
+  const n = data.length;
+  const dp = data[n - 1].slice();
   for (let i = n - 2; i > -1; --i) {
     for (let j = 0; j < data[i].length; ++j) {
-      dp[j] = Math.min(dp[j], dp[j + 1]) + data[i][j]
+      dp[j] = Math.min(dp[j], dp[j + 1]) + data[i][j];
     }
   }
-  return dp[0]
+  return dp[0];
 }
-
 
 /** @param data */
 export function uniquePaths1(data: [number, number]) {
@@ -400,7 +379,7 @@ export function uniquePaths1(data: [number, number]) {
   const m = data[1]; // Number of columns
   const currentRow = [];
   currentRow.length = n;
-  
+
   for (let i = 0; i < n; i++) {
     currentRow[i] = 1;
   }
@@ -409,55 +388,53 @@ export function uniquePaths1(data: [number, number]) {
       currentRow[i] += currentRow[i - 1];
     }
   }
-  
+
   return currentRow[n - 1];
 }
 
-
 /** @param data */
 export function uniquePaths2(data: number[][]) {
-  const obstacleGrid = []
-  obstacleGrid.length = data.length
+  const obstacleGrid = [];
+  obstacleGrid.length = data.length;
   for (let i = 0; i < obstacleGrid.length; ++i) {
-    obstacleGrid[i] = data[i].slice()
+    obstacleGrid[i] = data[i].slice();
   }
   for (let i = 0; i < obstacleGrid.length; i++) {
     for (let j = 0; j < obstacleGrid[0].length; j++) {
       if (obstacleGrid[i][j] == 1) {
-        obstacleGrid[i][j] = 0
+        obstacleGrid[i][j] = 0;
       } else if (i == 0 && j == 0) {
-        obstacleGrid[0][0] = 1
+        obstacleGrid[0][0] = 1;
       } else {
-        obstacleGrid[i][j] = (i > 0 ? obstacleGrid[i - 1][j] : 0) + (j > 0 ? obstacleGrid[i][j - 1] : 0)
+        obstacleGrid[i][j] = (i > 0 ? obstacleGrid[i - 1][j] : 0) + (j > 0 ? obstacleGrid[i][j - 1] : 0);
       }
     }
   }
-  return obstacleGrid[obstacleGrid.length - 1][obstacleGrid[0].length - 1]
+  return obstacleGrid[obstacleGrid.length - 1][obstacleGrid[0].length - 1];
 }
-
 
 /** @param data */
 export function shortestPath(data: number[][]) {
-  //slightly adapted and simplified to get rid of MinHeap usage, and construct a valid path from potential candidates   
-  //MinHeap replaced by simple array acting as queue (breadth first search)  
+  //slightly adapted and simplified to get rid of MinHeap usage, and construct a valid path from potential candidates
+  //MinHeap replaced by simple array acting as queue (breadth first search)
   const width = data[0].length;
   const height = data.length;
   const dstY = height - 1;
   const dstX = width - 1;
-  
+
   const distance = new Array(height);
   //const prev: [[number, number] | undefined][] = new Array(height);
   const queue: [number, number][] = [];
-  
+
   for (let y = 0; y < height; y++) {
     distance[y] = new Array(width).fill(Infinity);
     //prev[y] = new Array(width).fill(undefined) as [undefined];
   }
-  
+
   function validPosition(y: number, x: number) {
     return y >= 0 && y < height && x >= 0 && x < width && data[y][x] == 0;
   }
-  
+
   // List in-bounds and passable neighbors
   function* neighbors(y: number, x: number) {
     if (validPosition(y - 1, x)) yield [y - 1, x]; // Up
@@ -465,10 +442,10 @@ export function shortestPath(data: number[][]) {
     if (validPosition(y, x - 1)) yield [y, x - 1]; // Left
     if (validPosition(y, x + 1)) yield [y, x + 1]; // Right
   }
-  
+
   // Prepare starting point
   distance[0][0] = 0;
-  
+
   //## Original version
   // queue.push([0, 0], 0);
   // // Take next-nearest position and expand potential paths from there
@@ -487,135 +464,148 @@ export function shortestPath(data: number[][]) {
   //     }
   //   }
   // }
-  
+
   //Simplified version. d < distance[yN][xN] should never happen for BFS if d != infinity, so we skip changeweight and simplify implementation
-  //algo always expands shortest path, distance != infinity means a <= lenght path reaches it, only remaining case to solve is infinity    
+  //algo always expands shortest path, distance != infinity means a <= lenght path reaches it, only remaining case to solve is infinity
   queue.push([0, 0]);
   while (queue.length > 0) {
-    const [y, x] = queue.shift()!
+    const [y, x] = queue.shift()!;
     for (const [yN, xN] of neighbors(y, x)) {
       if (distance[yN][xN] == Infinity) {
-        queue.push([yN, xN])
-        distance[yN][xN] = distance[y][x] + 1
+        queue.push([yN, xN]);
+        distance[yN][xN] = distance[y][x] + 1;
       }
     }
   }
-  
+
   // No path at all?
-  if (distance[dstY][dstX] == Infinity) return "";
-  
+  if (distance[dstY][dstX] == Infinity) return '';
+
   //trace a path back to start
-  let path = ""
-  let [yC, xC] = [dstY, dstX]
+  let path = '';
+  let [yC, xC] = [dstY, dstX];
   while (xC != 0 || yC != 0) {
     const dist = distance[yC][xC];
     for (const [yF, xF] of neighbors(yC, xC)) {
       if (distance[yF][xF] == dist - 1) {
-        path = (xC == xF ? (yC == yF + 1 ? "D" : "U") : (xC == xF + 1 ? "R" : "L")) + path;
-        [yC, xC] = [yF, xF]
-        break
+        path = (xC == xF ? (yC == yF + 1 ? 'D' : 'U') : xC == xF + 1 ? 'R' : 'L') + path;
+        [yC, xC] = [yF, xF];
+        break;
       }
     }
   }
-  
+
   return path;
 }
 
-
 /** @param data  */
 export function sanitizeParentheses(data: string) {
-  let left = 0
-  let right = 0
-  const res: any[] = []
+  let left = 0;
+  let right = 0;
+  const res: any[] = [];
   for (let i = 0; i < data.length; ++i) {
     if (data[i] === '(') {
-      ++left
+      ++left;
     } else if (data[i] === ')') {
-      left > 0 ? --left : ++right
+      left > 0 ? --left : ++right;
     }
   }
-  
+
   function dfs(pair: number, index: number, left: number, right: number, s: string, solution: string, res: string[]) {
     if (s.length === index) {
       if (left === 0 && right === 0 && pair === 0) {
         for (let i = 0; i < res.length; i++) {
           if (res[i] === solution) {
-            return
+            return;
           }
         }
-        res.push(solution)
+        res.push(solution);
       }
-      return
+      return;
     }
     if (s[index] === '(') {
       if (left > 0) {
-        dfs(pair, index + 1, left - 1, right, s, solution, res)
+        dfs(pair, index + 1, left - 1, right, s, solution, res);
       }
-      dfs(pair + 1, index + 1, left, right, s, solution + s[index], res)
+      dfs(pair + 1, index + 1, left, right, s, solution + s[index], res);
     } else if (s[index] === ')') {
-      if (right > 0) dfs(pair, index + 1, left, right - 1, s, solution, res)
-      if (pair > 0) dfs(pair - 1, index + 1, left, right, s, solution + s[index], res)
+      if (right > 0) dfs(pair, index + 1, left, right - 1, s, solution, res);
+      if (pair > 0) dfs(pair - 1, index + 1, left, right, s, solution + s[index], res);
     } else {
-      dfs(pair, index + 1, left, right, s, solution + s[index], res)
+      dfs(pair, index + 1, left, right, s, solution + s[index], res);
     }
   }
-  dfs(0, 0, left, right, data, '', res)
-  
-  return res
-}
+  dfs(0, 0, left, right, data, '', res);
 
+  return res;
+}
 
 /** @param data  */
 export function findAllValidMathExpressions(data: [string, number]) {
-  const num = data[0]
-  const target = data[1]
-  
-  function helper(res: string[], path: string, num: string, target: number, pos: number, evaluated: number, multed: number) {
+  const num = data[0];
+  const target = data[1];
+
+  function helper(
+    res: string[],
+    path: string,
+    num: string,
+    target: number,
+    pos: number,
+    evaluated: number,
+    multed: number,
+  ) {
     if (pos === num.length) {
       if (target === evaluated) {
-        res.push(path)
+        res.push(path);
       }
-      return
+      return;
     }
     for (let i = pos; i < num.length; ++i) {
       if (i != pos && num[pos] == '0') {
-        break
+        break;
       }
-      const cur = parseInt(num.substring(pos, i + 1))
+      const cur = parseInt(num.substring(pos, i + 1));
       if (pos === 0) {
-        helper(res, path + cur, num, target, i + 1, cur, cur)
+        helper(res, path + cur, num, target, i + 1, cur, cur);
       } else {
-        helper(res, path + '+' + cur, num, target, i + 1, evaluated + cur, cur)
-        helper(res, path + '-' + cur, num, target, i + 1, evaluated - cur, -cur)
-        helper(res, path + '*' + cur, num, target, i + 1, evaluated - multed + multed * cur, multed * cur)
+        helper(res, path + '+' + cur, num, target, i + 1, evaluated + cur, cur);
+        helper(res, path + '-' + cur, num, target, i + 1, evaluated - cur, -cur);
+        helper(res, path + '*' + cur, num, target, i + 1, evaluated - multed + multed * cur, multed * cur);
       }
     }
   }
-  
-  if (num == null || num.length === 0) {
-    return []
-  }
-  const result: string[] = []
-  helper(result, '', num, target, 0, 0, 0)
-  return result
-}
 
+  if (num == null || num.length === 0) {
+    return [];
+  }
+  const result: string[] = [];
+  helper(result, '', num, target, 0, 0, 0);
+  return result;
+}
 
 /** @param value  */
 export function intToEncodedBinary(value: number) {
   // Calculates the needed amount of parityBits 'without' the "overall"-Parity
-  const HammingSumOfParity = (lengthOfDBits: number) => lengthOfDBits == 0 ? 0 : lengthOfDBits < 3 ? lengthOfDBits + 1 :
-  Math.ceil(Math.log2(lengthOfDBits * 2)) <= Math.ceil(Math.log2(1 + lengthOfDBits + Math.ceil(Math.log2(lengthOfDBits)))) ?
-  Math.ceil(Math.log2(lengthOfDBits) + 1) : Math.ceil(Math.log2(lengthOfDBits));
-  const data = value.toString(2).split(""); // first, change into binary string, then create array with 1 bit per index
+  const HammingSumOfParity = (lengthOfDBits: number) =>
+    lengthOfDBits == 0
+      ? 0
+      : lengthOfDBits < 3
+      ? lengthOfDBits + 1
+      : Math.ceil(Math.log2(lengthOfDBits * 2)) <=
+        Math.ceil(Math.log2(1 + lengthOfDBits + Math.ceil(Math.log2(lengthOfDBits))))
+      ? Math.ceil(Math.log2(lengthOfDBits) + 1)
+      : Math.ceil(Math.log2(lengthOfDBits));
+  const data = value.toString(2).split(''); // first, change into binary string, then create array with 1 bit per index
   const sumParity = HammingSumOfParity(data.length); // get the sum of needed parity bits (for later use in encoding)
   const count = (arr: string[], val: string) => arr.reduce((a, v) => (v === val ? a + 1 : a), 0);
   // function count for specific entries in the array, for later use
-  const build = ["x", "x", ...data.splice(0, 1)]; // init the "pre-build"
-  for (let i = 2; i < sumParity; i++)
-  build.push("x", ...data.splice(0, Math.pow(2, i) - 1)); // add new paritybits and the corresponding data bits (pre-building array)
+  const build = ['x', 'x', ...data.splice(0, 1)]; // init the "pre-build"
+  for (let i = 2; i < sumParity; i++) build.push('x', ...data.splice(0, Math.pow(2, i) - 1)); // add new paritybits and the corresponding data bits (pre-building array)
   // Get the index numbers where the parity bits "x" are placed
-  const parityBits: any = build.map((e, i) => [e, i]).filter(([e, _]) => e == "x").map(([_, i]) => i);
+  const parityBits: any = build
+    .map((e, i) => [e, i])
+    .filter(([e, _]) => e == 'x')
+    .map(([_, i]) => i);
   for (const index of parityBits) {
     const tempcount = index + 1; // set the "stepsize" for the parityBit
     const temparray = []; // temporary array to store the extracted bits
@@ -626,23 +616,22 @@ export function intToEncodedBinary(value: number) {
       temparray.push(...temp.splice(0, tempcount)); // ... cut the result again and keep the first half
     }
     temparray.splice(0, 1); // remove first bit, which is the parity one
-    build[index] = (count(temparray, "1") % 2).toString(); // count with remainder of 2 and"toString" to store the parityBit
+    build[index] = (count(temparray, '1') % 2).toString(); // count with remainder of 2 and"toString" to store the parityBit
   } // parity done, now the "overall"-parity is set
-  build.unshift((count(build, "1") % 2).toString()); // has to be done as last element
-  return build.join(""); // return the build as string
+  build.unshift((count(build, '1') % 2).toString()); // has to be done as last element
+  return build.join(''); // return the build as string
 }
-
 
 /** @param data  */
 export function encBinaryToInt(data: string) {
   //check for altered bit and decode
-  const build = data.split(""); // ye, an array for working, again
+  const build = data.split(''); // ye, an array for working, again
   const testArray = []; //for the "truthtable". if any is false, the data has an altered bit, will check for and fix it
   const sumParity = Math.ceil(Math.log2(data.length)); // sum of parity for later use
   const count = (arr: string[], val: string) => arr.reduce((a, v) => (v === val ? a + 1 : a), 0);
   // the count.... again ;)
-  let overallParity = build.splice(0, 1).join(""); // store first index, for checking in next step and fix the build properly later on
-  testArray.push(overallParity == (count(build, "1") % 2).toString() ? true : false); // first check with the overall parity bit
+  let overallParity = build.splice(0, 1).join(''); // store first index, for checking in next step and fix the build properly later on
+  testArray.push(overallParity == (count(build, '1') % 2).toString() ? true : false); // first check with the overall parity bit
   for (let i = 0; i < sumParity; i++) {
     // for the rest of the remaining parity bits we also "check"
     const tempIndex = Math.pow(2, i) - 1; // get the parityBits Index
@@ -655,7 +644,7 @@ export function encBinaryToInt(data: string) {
       tempArray.push(...temp.splice(0, tempStep)); // and cut again for keeping first half
     }
     const tempParity = tempArray.shift(); // and again save the first index separated for checking with the rest of the data
-    testArray.push(tempParity == (count(tempArray, "1") % 2).toString() ? true : false);
+    testArray.push(tempParity == (count(tempArray, '1') % 2).toString() ? true : false);
     // is the tempParity the calculated data? push answer into the 'truthtable'
   }
   let fixIndex = 0; // init the "fixing" index and start with 0
@@ -665,10 +654,12 @@ export function encBinaryToInt(data: string) {
   }
   build.unshift(overallParity); // now we need the "overall" parity back in it's place
   // try fix the actual encoded binary string if there is an error
-  if (fixIndex > 0 && testArray[0] == false) { // if the overall is false and the sum of calculated values is greater equal 0, fix the corresponding hamming-bit           
-    build[fixIndex] = build[fixIndex] == "0" ? "1" : "0";
-  } else if (testArray[0] == false) { // otherwise, if the the overallparity is the only wrong, fix that one           
-    overallParity = overallParity == "0" ? "1" : "0";
+  if (fixIndex > 0 && testArray[0] == false) {
+    // if the overall is false and the sum of calculated values is greater equal 0, fix the corresponding hamming-bit
+    build[fixIndex] = build[fixIndex] == '0' ? '1' : '0';
+  } else if (testArray[0] == false) {
+    // otherwise, if the the overallparity is the only wrong, fix that one
+    overallParity = overallParity == '0' ? '1' : '0';
   } else if (testArray[0] == true && testArray.some((truth) => truth == false)) {
     return 0; // ERROR: There's some strange going on... 2 bits are altered? How? This should not happen
   }
@@ -678,76 +669,73 @@ export function encBinaryToInt(data: string) {
     build.splice(Math.pow(2, i), 1);
   }
   build.splice(0, 1); // remove the overall parity bit and we have our binary value
-  return parseInt(build.join(""), 2); // parse the integer with redux 2 and we're done!
+  return parseInt(build.join(''), 2); // parse the integer with redux 2 and we're done!
 }
-
 
 /** @param data */
 export function colorGraph(data: [number, [number, number][]]) {
   // convert from edges to nodes
-  const nodes: number[][] = new Array(data[0]).fill(0).map(() => [])
+  const nodes: number[][] = new Array(data[0]).fill(0).map(() => []);
   for (const e of data[1]) {
-    nodes[e[0]].push(e[1])
-    nodes[e[1]].push(e[0])
+    nodes[e[0]].push(e[1]);
+    nodes[e[1]].push(e[0]);
   }
   // solution graph starts out undefined and fills in with 0s and 1s
-  const solution = new Array(data[0]).fill(undefined)
-  let oddCycleFound = false
+  const solution = new Array(data[0]).fill(undefined);
+  let oddCycleFound = false;
   // recursive function for DFS
   const traverse = (index: number, color: number) => {
     if (oddCycleFound) {
       // leave immediately if an invalid cycle was found
-      return
+      return;
     }
     if (solution[index] === color) {
       // node was already hit and is correctly colored
-      return
+      return;
     }
     if (solution[index] === (color ^ 1)) {
       // node was already hit and is incorrectly colored: graph is uncolorable
-      oddCycleFound = true
-      return
+      oddCycleFound = true;
+      return;
     }
-    solution[index] = color
+    solution[index] = color;
     for (const n of nodes[index]) {
-      traverse(n, color ^ 1)
+      traverse(n, color ^ 1);
     }
-  }
+  };
   // repeat run for as long as undefined nodes are found, in case graph isn't fully connected
-  while (!oddCycleFound && solution.some(e => e === undefined)) {
-    traverse(solution.indexOf(undefined), 0)
+  while (!oddCycleFound && solution.some((e) => e === undefined)) {
+    traverse(solution.indexOf(undefined), 0);
   }
-  if (oddCycleFound) return "[]"; // TODO: Bug #3755 in bitburner requires a string literal. Will this be fixed?
-  return solution
+  if (oddCycleFound) return '[]'; // TODO: Bug #3755 in bitburner requires a string literal. Will this be fixed?
+  return solution;
 }
-
 
 /** @param data */
 export function rleCompression(data: string) {
   //original code doesn't generate an answer, but validates it, fallback to this one-liner
-  return data.replace(/([\w])\1{0,8}/g, (group, chr) => group.length + chr)
+  return data.replace(/([\w])\1{0,8}/g, (group, chr) => group.length + chr);
 }
-
 
 /** @param compr */
 export function lzDecompression(compr: string) {
-  let plain = "";
-  
-  for (let i = 0; i < compr.length;) {
+  let plain = '';
+
+  for (let i = 0; i < compr.length; ) {
     const literal_length = compr.charCodeAt(i) - 0x30;
-    
+
     if (literal_length < 0 || literal_length > 9 || i + 1 + literal_length > compr.length) {
       return null;
     }
-    
+
     plain += compr.substring(i + 1, i + 1 + literal_length);
     i += 1 + literal_length;
-    
+
     if (i >= compr.length) {
       break;
     }
     const backref_length = compr.charCodeAt(i) - 0x30;
-    
+
     if (backref_length < 0 || backref_length > 9) {
       return null;
     } else if (backref_length === 0) {
@@ -756,29 +744,28 @@ export function lzDecompression(compr: string) {
       if (i + 1 >= compr.length) {
         return null;
       }
-      
+
       const backref_offset = compr.charCodeAt(i + 1) - 0x30;
       if ((backref_length > 0 && (backref_offset < 1 || backref_offset > 9)) || backref_offset > plain.length) {
         return null;
       }
-      
+
       for (let j = 0; j < backref_length; ++j) {
         plain += plain[plain.length - backref_offset];
       }
-      
+
       i += 2;
     }
   }
-  
+
   return plain;
 }
-
 
 /** @param plain */
 export function lzCompression(plain: string) {
   let cur_state = Array.from(Array(10), () => Array(10).fill(null));
   let new_state = Array.from(Array(10), () => Array(10));
-  
+
   function set(state: string[][], i: number, j: number, str: string) {
     const current = state[i][j];
     if (current == null || str.length < current.length) {
@@ -789,31 +776,31 @@ export function lzCompression(plain: string) {
       state[i][j] = str;
     }
   }
-  
+
   // initial state is a literal of length 1
-  cur_state[0][1] = "";
-  
+  cur_state[0][1] = '';
+
   for (let i = 1; i < plain.length; ++i) {
     for (const row of new_state) {
       row.fill(null);
     }
     const c = plain[i];
-    
+
     // handle literals
     for (let length = 1; length <= 9; ++length) {
       const string = cur_state[0][length];
       if (string == null) {
         continue;
       }
-      
+
       if (length < 9) {
         // extend current literal
         set(new_state, 0, length + 1, string);
       } else {
         // start new literal
-        set(new_state, 0, 1, string + "9" + plain.substring(i - 9, i) + "0");
+        set(new_state, 0, 1, string + '9' + plain.substring(i - 9, i) + '0');
       }
-      
+
       for (let offset = 1; offset <= Math.min(9, i); ++offset) {
         if (plain[i - offset] === c) {
           // start new backreference
@@ -821,7 +808,7 @@ export function lzCompression(plain: string) {
         }
       }
     }
-    
+
     // handle backreferences
     for (let offset = 1; offset <= 9; ++offset) {
       for (let length = 1; length <= 9; ++length) {
@@ -829,42 +816,42 @@ export function lzCompression(plain: string) {
         if (string == null) {
           continue;
         }
-        
+
         if (plain[i - offset] === c) {
           if (length < 9) {
             // extend current backreference
             set(new_state, offset, length + 1, string);
           } else {
             // start new backreference
-            set(new_state, offset, 1, string + "9" + offset + "0");
+            set(new_state, offset, 1, string + '9' + offset + '0');
           }
         }
-        
+
         // start new literal
         set(new_state, 0, 1, string + length + offset);
-        
+
         // end current backreference and start new backreference
         for (let new_offset = 1; new_offset <= Math.min(9, i); ++new_offset) {
           if (plain[i - new_offset] === c) {
-            set(new_state, new_offset, 1, string + length + offset + "0");
+            set(new_state, new_offset, 1, string + length + offset + '0');
           }
         }
       }
     }
-    
+
     const tmp_state = new_state;
     new_state = cur_state;
     cur_state = tmp_state;
   }
-  
+
   let result = null;
-  
+
   for (let len = 1; len <= 9; ++len) {
     let string = cur_state[0][len];
     if (string == null) {
       continue;
     }
-    
+
     string += len + plain.substring(plain.length - len, plain.length);
     if (result == null || string.length < result.length) {
       result = string;
@@ -872,15 +859,15 @@ export function lzCompression(plain: string) {
       result = string;
     }
   }
-  
+
   for (let offset = 1; offset <= 9; ++offset) {
     for (let len = 1; len <= 9; ++len) {
       let string = cur_state[offset][len];
       if (string == null) {
         continue;
       }
-      
-      string += len + "" + offset;
+
+      string += len + '' + offset;
       if (result == null || string.length < result.length) {
         result = string;
       } else if (string.length == result.length && Math.random() < 0.5) {
@@ -888,28 +875,26 @@ export function lzCompression(plain: string) {
       }
     }
   }
-  
-  return result ?? "";
-}
 
+  return result ?? '';
+}
 
 /** @param data */
 export function caesarCipher(data: [string, number]) {
   const cipher = [...data[0]]
-  .map((a) => (a === " " ? a : String.fromCharCode(((a.charCodeAt(0) - 65 - data[1] + 26) % 26) + 65)))
-  .join("");
+    .map((a) => (a === ' ' ? a : String.fromCharCode(((a.charCodeAt(0) - 65 - data[1] + 26) % 26) + 65)))
+    .join('');
   return cipher;
 }
-
 
 /** @param data */
 export function vigenereEncryption(data: [string, string]) {
   const cipher = [...data[0]]
-  .map((a, i) => {
-    return a === " "
-    ? a
-    : String.fromCharCode(((a.charCodeAt(0) - 2 * 65 + data[1].charCodeAt(i % data[1].length)) % 26) + 65);
-  })
-  .join("");
+    .map((a, i) => {
+      return a === ' '
+        ? a
+        : String.fromCharCode(((a.charCodeAt(0) - 2 * 65 + data[1].charCodeAt(i % data[1].length)) % 26) + 65);
+    })
+    .join('');
   return cipher;
 }

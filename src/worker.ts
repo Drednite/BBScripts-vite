@@ -12,7 +12,15 @@ import {
   installBackdoor,
 } from './helpers';
 
-const argsSchema: [string, string | number | boolean | string[]][] = [['g', false]];
+const argsSchema: [string, string | number | boolean | string[]][] = [
+  ['g', false],
+  ['b', false],
+];
+
+const strength = 'strength';
+const defense = 'defense';
+const dexterity = 'dexterity';
+const agility = 'agility';
 
 export function autocomplete(data: AutocompleteData) {
   data.flags(argsSchema);
@@ -116,6 +124,9 @@ export async function main(ns: NS): Promise<void> {
     }
   }
 
+  if (flags.b) {
+    await bbRecruit(ns);
+  }
   await hacker(ns);
   await employee(ns);
   await karmaKiller(ns);
@@ -243,6 +254,19 @@ async function employee(ns: NS) {
       manageInvites(ns);
       await ns.sleep(waitTime);
     }
+  }
+}
+
+async function bbRecruit(ns: NS) {
+  const bb = ns.bladeburner;
+  if (!bb.inBladeburner()) {
+    ns.print('Training to join Bladeburner Division');
+    await workout(ns, strength, 100);
+    await workout(ns, defense, 100);
+    await workout(ns, dexterity, 100);
+    await workout(ns, agility, 100);
+    bb.joinBladeburnerDivision();
+    bb.joinBladeburnerFaction();
   }
 }
 

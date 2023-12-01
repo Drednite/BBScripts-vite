@@ -1,25 +1,27 @@
-import { NS } from "@ns";
+import { NS } from '@ns';
 
 /** @param {NS} ns */
 export async function main(ns: NS) {
   const sin = ns.singularity;
-  var focus = !sin.getOwnedAugmentations().includes("Neuroreceptor Management Implant");
+  const focus = !sin.getOwnedAugmentations().includes('Neuroreceptor Management Implant');
   ns.tail();
   ns.atExit(() => {
     ns.closeTail();
-  })
-  sin.commitCrime("Mug", focus);
-  while (sin.getCrimeChance("Homicide") < .6) {
+  });
+  sin.commitCrime('Mug', focus);
+  while (sin.getCrimeChance('Homicide') < 0.6) {
     await ns.sleep(10000);
   }
-  sin.commitCrime("Homicide", focus);
+  sin.commitCrime('Homicide', focus);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore: heart.break hidden function
-  var karma = ns.heart.break();
+  let karma = ns.heart.break();
   while (karma > -54000) {
-    ns.setTitle(ns.sprintf("Karma: %d", karma));
+    ns.setTitle(ns.sprintf('Karma: %d', karma));
     await ns.sleep(10000);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore: heart.break hidden function
     karma = ns.heart.break();
   }
-  sin.commitCrime("Heist", focus);
+  sin.commitCrime('Heist', focus);
 }
