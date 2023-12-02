@@ -26,20 +26,26 @@ export async function main(ns: NS): Promise<void> {
   // availableAugments.forEach((aug) => {
   //   ns.print(aug + ": " + ns.formatNumber(sin.getAugmentationBasePrice(aug)));
   // })
-  if (ns.isRunning('stockTrader5.js')) {
-    ns.kill('stockTrader5.js');
-    const book = ns.stock.getSymbols();
-    for (const stock in book) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [long, longPrice, short, shortPrice] = ns.stock.getPosition(stock);
-      if (long > 0) {
-        ns.stock.sellStock(stock, long);
-      }
-      if (short > 0) {
-        ns.stock.sellShort(stock, short);
-      }
+  // if (ns.isRunning('stockTrader5.js')) {
+  ns.kill('stockTrader5.js');
+  const book = ns.stock.getSymbols();
+  for (const symb in book) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [long, longPrice, short, shortPrice] = ns.stock.getPosition(book[symb]);
+    if (long > 0) {
+      const soldFor = ns.stock.sellStock(book[symb], long);
+      const message = 'Sold ' + long + ' Long shares of ' + book[symb] + ' for $' + ns.formatNumber(soldFor);
+
+      ns.toast(message, 'success');
+    }
+    if (short > 0) {
+      const soldFor = ns.stock.sellShort(book[symb], short);
+      const message = 'Sold ' + short + ' Short shares of ' + book[symb] + ' for $' + ns.formatNumber(soldFor);
+
+      ns.toast(message, 'success');
     }
   }
+  // }
 
   ns.hacknet.spendHashes('Sell for Money', undefined, ns.hacknet.numHashes() / 4);
   for (const aug of availableAugments) {
@@ -60,5 +66,6 @@ export async function main(ns: NS): Promise<void> {
     sin.purchaseAugmentation(maxFact, 'NeuroFlux Governor');
     await ns.sleep(100);
   }
-  sin.installAugmentations('startup.js');
+  const install = await ns.prompt('Install?', { type: 'boolean' });
+  if (install) sin.installAugmentations('startup.js');
 }

@@ -9,10 +9,12 @@ export async function main(ns: NS) {
   // Logging
   ns.disableLog('ALL');
   ns.tail();
+  ns.moveTail(1605, 0);
+  ns.resizeTail(315, 540);
 
   // Globals
   // const scriptTimer = 2000; // Time script waits
-  const moneyKeep = 1000000000; // Failsafe Money
+  const moneyKeep = 150000000000; // Failsafe Money
   //const moneyKeep = 1000000;
   const stockBuyOver_Long = 0.6; // Buy stocks when forecast is over this %
   const stockBuyUnder_Short = 0.4; // Buy shorts when forecast is under this %

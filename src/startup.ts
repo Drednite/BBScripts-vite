@@ -41,6 +41,10 @@ export async function main(ns: NS) {
     startList.push('stockTrader5.js');
   }
 
+  if (ns.sleeve.getNumSleeves() > 0) {
+    startList.push('sleeves.js');
+  }
+
   startList.forEach((call) => {
     if (typeof call == 'string') {
       ns.run(call);

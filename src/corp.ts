@@ -22,7 +22,7 @@ export async function main(ns: NS) {
   ns.tail();
   ns.disableLog('ALL');
   ns.clearLog();
-  ns.moveTail(1605, 0);
+  ns.moveTail(1605, 35);
   ns.atExit(() => {
     ns.closeTail();
   });
@@ -404,7 +404,7 @@ export async function main(ns: NS) {
         ns.tprint('hit the default case in corp script, something went wrong.');
         return;
     }
-    await corp.nextUpdate();
+    await ns.sleep(100);
   }
   ///////////////////////////////////////////////////////////////////////////////////////////
   /** makes typing stuff easier */
