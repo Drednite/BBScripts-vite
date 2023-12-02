@@ -50,7 +50,7 @@ export async function main(ns: NS) {
     for (let i = 0; i < numSleeves; i++) {
       const sleeve = sl.getSleeve(i);
       let currTask = sl.getTask(i);
-      if (sleeve.shock > lowestShock) {
+      if (sleeve.shock > lowestShock + 1) {
         if (currTask?.type != 'RECOVERY') {
           sl.setToShockRecovery(i);
           ns.print('Set sleeve ' + i + ' to Recovery');
