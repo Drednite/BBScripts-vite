@@ -42,7 +42,7 @@ export async function main(ns: NS) {
   }
 
   if (ns.sleeve.getNumSleeves() > 0) {
-    startList.push('sleeves.js');
+    startList.push('dev/sleeve.js');
   }
 
   startList.forEach((call) => {
