@@ -1,4 +1,4 @@
-import { NS } from '@ns';
+import { NS, Person } from '@ns';
 
 export async function main(ns: NS): Promise<void> {
   ns.tprint('This is just a collection of helper functions to be imported into other scripts.');
@@ -481,3 +481,78 @@ export function calculateStaminaGainPerSecond(ns: NS): number {
   const gain = (StaminaGainPerSecond + maxStaminaBonus) * Math.pow(effAgility, 0.17);
   return gain * (player.mults.bladeburner_max_stamina * player.mults.bladeburner_stamina_gain);
 }
+
+// // There is currently no way to get the contract success chance for sleeves, this is my current progress of reverse
+// // engineering my own from the source code
+// class bbAction {
+//   constructor(
+//     _name: string,
+//     _type: string,
+//     _baseDifficulty: number,
+//     _difficultyFactor: number,
+//     _isStealth?: boolean,
+//     _isKill?: boolean,
+//   ) {
+//     this.name = _name;
+//     this.type = _type;
+//     this.baseDifficulty = _baseDifficulty;
+//     this.difficultyFac = _difficultyFactor;
+//     this.isStealth = _isStealth;
+//     this.isKill = _isKill;
+//   }
+
+//   name = '';
+//   type = '';
+//   baseDifficulty = 100;
+//   difficultyFac = 1.01;
+//   isStealth? = false;
+//   isKill? = false;
+// }
+
+// const bbActions: Record<string, bbAction> = {
+//   Tracking: {
+//     name: 'Tracking',
+//     type: 'Contract',
+//     baseDifficulty: 125,
+//     difficultyFac: 1.02,
+//     isStealth: true,
+//   },
+//   ['Bounty Hunter']: {
+//     name: 'Bounty Hunter',
+//     type: 'Contract',
+//     baseDifficulty: 250,
+//     difficultyFac: 1.04,
+//     isKill: true,
+//   },
+//   Retirement: {
+//     name: 'Retirement',
+//     type: 'Contract',
+//     baseDifficulty: 200,
+//     difficultyFac: 1.03,
+//     isKill: true,
+//   },
+//   Investigation: {
+//     name: 'Investigation',
+//     type: 'Operation',
+//     baseDifficulty: 400,
+//     difficultyFac: 1.03,
+//     isStealth: true,
+//   },
+// };
+
+// export function bbSuccessChance(ns: NS, person: Person, actionName: string) {
+//   if (!ns.bladeburner.inBladeburner) {
+//     return 0;
+//   }
+//   if (bbActions[actionName] == null) {
+//     ns.print('ERROR: ' + actionName + ' not found');
+//     return 0;
+//   }
+
+//   const action = bbActions[actionName];
+//   const difficulty =
+//     action.baseDifficulty *
+//     Math.pow(action.difficultyFac, ns.bladeburner.getActionCurrentLevel(action.type, action.name));
+//   let competence = 0;
+//   for (const stat of Object.keys(person.skills))
+// }
