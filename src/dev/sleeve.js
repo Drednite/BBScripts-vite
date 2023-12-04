@@ -27,7 +27,7 @@ const argsSchema = [
   ['train-to-dexterity', 70], // Sleeves will go to the gym until they reach this much Dex
   ['train-to-agility', 70], // Sleeves will go to the gym until they reach this much Agi
   ['training-reserve', null], // Defaults to global reserve.txt. Can be set to a negative number to allow debt. Sleeves will not train if money is below this amount.
-  ['training-cap-seconds', 2 * 60 * 60 /* 2 hours */], // Time since the start of the bitnode after which we will no longer attempt to train sleeves to their target "train-to" settings
+  ['training-cap-seconds', 30 * 60 /* 1/2 hours */], // Time since last reset after which we will no longer attempt to train sleeves to their target "train-to" settings
   ['disable-spending-hashes-for-gym-upgrades', false], // Set to true to disable spending hashes on gym upgrades when training up sleeves.
   ['enable-bladeburner-team-building', false], // Set to true to have one sleeve support the main sleeve, and another do recruitment. Otherwise, they will just do more "Infiltrate Synthoids"
   ['disable-bladeburner', false], // Set to true to disable having sleeves workout at the gym (costs money)
@@ -211,7 +211,7 @@ async function mainLoop(ns) {
   // Estimate the cost of sleeves training over the next time interval to see if (ignoring income) we would drop below our reserve.
   const costByNextLoop = (interval / 1000) * task.filter((t) => t.startsWith('train')).length * 12000; // TODO: Training cost/sec seems to be a bug. Should be 1/5 this ($2400/sec)
   // Get time in current bitnode (to cap how long we'll train sleeves)
-  const timeInBitnode = Date.now() - (await getNsDataThroughFile(ns, 'ns.getResetInfo()')).lastNodeReset;
+  const timeInBitnode = Date.now() - (await getNsDataThroughFile(ns, 'ns.getResetInfo()')).lastAugReset;
   let canTrain =
     !options['disable-training'] &&
     // To avoid training forever when mults are crippling, stop training if we've been in the bitnode a certain amount of time
