@@ -590,7 +590,7 @@ export async function main(ns: NS) {
     if (offer > bestOffer) bestOffer = offer;
     ns.print('Waiting for investment offer ' + round);
     const goal = investAmounts[round] * ns.getBitNodeMultipliers().CorporationValuation;
-    ns.print(ns.formatNumber(bestOffer + corp.getCorporation().funds) + '/' + ns.formatNumber(goal));
+    ns.print(ns.formatNumber(offer + corp.getCorporation().funds) + '/' + ns.formatNumber(goal));
     if (offer + corp.getCorporation().funds >= goal) {
       corp.acceptInvestmentOffer();
       return true;
