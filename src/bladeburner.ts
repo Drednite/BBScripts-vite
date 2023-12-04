@@ -299,8 +299,13 @@ export async function main(ns: NS): Promise<void> {
     while (currentTask.type != 'General') {
       if (bb.getActionSuccesses(currentTask.type, currentTask.name) > curSuccess) {
         return true;
-      } else if (bb.getActionCountRemaining(currentTask.type, currentTask.name) < curCount) {
+      } else if (
+        bb.getActionCountRemaining(currentTask.type, currentTask.name) < curCount &&
+        bb.getActionEstimatedSuccessChance(currentTask.type, currentTask.name)[0] < 1 // If success is guaranteed, it was just a sleeve that failed
+      ) {
         return false;
+      } else if (bb.getActionCountRemaining(currentTask.type, currentTask.name) < 1 && currentTask.type == 'BlackOp') {
+        return true;
       } else {
         curCount = bb.getActionCountRemaining(currentTask.type, currentTask.name);
         ns.setTitle(ns.sprintf('[%d/%d] %s', bb.getActionCurrentTime() / 1000, finishTime / 1000, currentTask.name));
@@ -336,11 +341,13 @@ export async function main(ns: NS): Promise<void> {
   // main loop
   while (true) {
     if (!simulacrum && (ns.getResetInfo().currentNode == 10 || ns.getResetInfo().ownedSF.has(10))) {
-      let price: number;
-      try {
-        price = ns.grafting.getAugmentationGraftPrice("The Blade's Simulacrum");
-      } catch {
-        price = Number.MAX_SAFE_INTEGER;
+      let price = Number.MAX_SAFE_INTEGER;
+      if (!sin.getOwnedAugmentations(true).includes("The Blade's Simulacrum")) {
+        try {
+          price = ns.grafting.getAugmentationGraftPrice("The Blade's Simulacrum");
+        } catch {
+          price = Number.MAX_SAFE_INTEGER;
+        }
       }
       if (ns.getServerMoneyAvailable('home') > price) {
         bb.stopBladeburnerAction();
