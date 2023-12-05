@@ -14,8 +14,8 @@ export async function main(ns: NS) {
 
   // Globals
   const scriptTimer = 2000; // Time script waits
-  const moneyKeep = 150000000000; // Failsafe Money
-  //const moneyKeep = 1000000;
+  // const moneyKeep = 150000000000; // Failsafe Money
+  const moneyKeep = 1000000;
   const stockBuyOver_Long = 0.6; // Buy stocks when forecast is over this %
   const stockBuyUnder_Short = 0.4; // Buy shorts when forecast is under this %
   const stockVolatility = 0.05; // Stocks must be under this volatility
@@ -23,54 +23,9 @@ export async function main(ns: NS) {
   const maxSharePercent = 1.0;
   const sellThreshold_Long = 0.55; // Sell Long when chance of increasing is under this
   const sellThreshold_Short = 0.4; // Sell Short when chance of increasing is under this
-  const shortUnlock = false; // Set true when short stocks are available to player
+  const shortUnlock = true; // Set true when short stocks are available to player
 
   const runScript = true; // For debug purposes
-  //   const toastDuration = 15000; // Toast message duration
-
-  //   const extraFormats = [1e15, 1e18, 1e21, 1e24, 1e27, 1e30];
-  //   const extraNotations = ['q', 'Q', 's', 'S', 'o', 'n'];
-  //   const decimalPlaces = 3;
-
-  //   // Functions
-  //   // Use nFormat for values it can work with
-  //   function format(number: number) {
-  //     if (Math.abs(number) < 1e-6) {
-  //       number = 0;
-  //     }
-
-  //     const answer = ns.nFormat(number, '$0.000a');
-
-  //     if (answer === 'NaN') {
-  //       return `${number}`;
-  //     }
-
-  //     return answer;
-  //   }
-
-  // numeral.js doesn't properly format numbers that are too big or too small
-  // So, we will supply our own function for values over 't'
-  //   function formatReallyBigNumber(number: number) {
-  //     if (number === Infinity) return '∞';
-
-  //     // Format numbers q+ properly
-  //     for (let i = 0; i < extraFormats.length; i++) {
-  //       if (extraFormats[i] < number && number <= extraFormats[i] * 1000) {
-  //         return format(number / extraFormats[i], '0.' + '0'.repeat(decimalPlaces)) + extraNotations[i];
-  //       }
-  //     }
-
-  //     // Use nFormat for numbers it can format
-  //     if (Math.abs(number) < 1000) {
-  //       return format(number, '0.' + '0'.repeat(decimalPlaces));
-  //     }
-
-  //     const str = format(number, '0.' + '0'.repeat(decimalPlaces) + 'a');
-
-  //     if (str === 'NaN') return format(number, '0.' + ' '.repeat(decimalPlaces) + 'e+0');
-
-  //     return str;
-  //   }
 
   function buyPositions(stock: string) {
     const position = ns.stock.getPosition(stock);

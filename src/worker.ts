@@ -15,6 +15,7 @@ import {
 const argsSchema: [string, string | number | boolean | string[]][] = [
   ['g', false],
   ['b', false],
+  ['e', false],
 ];
 
 const strength = 'strength';
@@ -128,8 +129,7 @@ export async function main(ns: NS): Promise<void> {
     await bbRecruit(ns);
   }
   await hacker(ns);
-  await employee(ns);
-  await karmaKiller(ns);
+  if (flags.e) await employee(ns);
   while (await endgame(ns)) {
     await ns.sleep(waitTime);
   }
