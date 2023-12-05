@@ -1,9 +1,13 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { NS } from '@ns';
 import { getAllServers } from '/src/helpers';
 
 /** @param {NS} ns */
 export async function main(ns: NS): Promise<void> {
   const continuous = ns.args[0];
+  if (continuous) {
+    ns.disableLog('sleep');
+  }
 
   // eslint-disable-next-line @typescript-eslint/ban-types
   const solvers = new Map<string, Function>([

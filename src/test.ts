@@ -6,7 +6,7 @@ export function autocomplete(data: AutocompleteData) {
 
 export async function main(ns: NS): Promise<void> {
   ns.tail();
-  ns.resizeTail(385, 340);
-
-  ns.print(ns.bladeburner.getCurrentAction());
+  const row = '│   ECP │  $41.10k [▓▓▓▓▓]  $46.49k│';
+  ns.print(row.length);
+  ns.print(row);
 }
