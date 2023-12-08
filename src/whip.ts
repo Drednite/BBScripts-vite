@@ -1,6 +1,7 @@
 import { AutocompleteData, NS } from '@ns';
 
 const argsSchema: [string, string | number | boolean | string[]][] = [
+  ['k', false],
   ['nextUpg', 6],
   ['name', 'serf'],
   // ["costMult", 10],
@@ -13,10 +14,14 @@ export function autocomplete(data: AutocompleteData) {
 
 const MAXHOMERAM = 1073741824;
 const MAXHOMECORES = 8;
+let keep = false;
 
 /** @param {NS} ns */
 export async function main(ns: NS) {
   const flags = ns.flags(argsSchema);
+  if (flags.k) {
+    keep = true;
+  }
   ns.tail();
   ns.disableLog('ALL');
   const waitTime = typeof flags.waitTime == 'number' ? flags.waitTime : 1000;
@@ -93,7 +98,7 @@ export async function main(ns: NS) {
         await upgradeHome(ns, upgradeCost * costMult);
         // await upgradeHacknet(ns, upgradeCost);
         while (upgradeCost * costMult > ns.getServerMoneyAvailable('home')) {
-          if (Date.now() - ns.getResetInfo().lastAugReset > 1.8e6) {
+          if (!keep && Date.now() - ns.getResetInfo().lastAugReset > 1.8e6) {
             ns.exit();
           }
           await ns.sleep(waitTime);
@@ -120,7 +125,7 @@ export async function main(ns: NS) {
  * @param {number} cost cost to be compared against
  */
 export async function upgradeHome(ns: NS, cost: number): Promise<void> {
-  if (Date.now() - ns.getResetInfo().lastAugReset > 1.8e6) {
+  if (!keep && Date.now() - ns.getResetInfo().lastAugReset > 1.8e6) {
     ns.exit();
   }
   const home = ns.getServer('home');
