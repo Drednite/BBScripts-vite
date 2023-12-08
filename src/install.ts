@@ -1,13 +1,27 @@
-import { NS } from '@ns';
+import { AutocompleteData, NS } from '@ns';
+
+const argsSchema: [string, string | number | boolean | string[]][] = [
+  ['h', false],
+  ['prompt', false],
+  ['donate', false],
+];
+
+export function autocomplete(data: AutocompleteData) {
+  data.flags(argsSchema);
+  return [];
+}
 
 export async function main(ns: NS): Promise<void> {
   ns.clearLog();
+  const flags = ns.flags(argsSchema);
   const sin = ns.singularity;
+  let install: string | boolean = true;
 
   const factions = ns.getPlayer().factions;
 
-  const availableAugments: string[] = [];
+  let availableAugments: string[] = [];
   const ownedAugments = sin.getOwnedAugmentations(true);
+  const hacker = flags.h;
 
   for (const fact of factions) {
     const factAugs = sin.getAugmentationsFromFaction(fact).filter((req) => !ownedAugments.includes(req));
@@ -19,6 +33,19 @@ export async function main(ns: NS): Promise<void> {
         availableAugments.push(aug);
       }
     }
+  }
+  if (hacker) {
+    availableAugments = availableAugments.filter((aug) => {
+      const stats = sin.getAugmentationStats(aug);
+      return (
+        stats.hacking ||
+        stats.hacking_chance ||
+        stats.hacking_exp ||
+        stats.hacking_grow ||
+        stats.hacking_money ||
+        stats.hacking_speed
+      );
+    });
   }
   availableAugments.sort((a, b) => sin.getAugmentationBasePrice(b) - sin.getAugmentationBasePrice(a));
 
@@ -57,6 +84,16 @@ export async function main(ns: NS): Promise<void> {
     }
 
     const augFact = augFacts.sort((a, b) => sin.getFactionRep(b) - sin.getFactionRep(a))[0];
+    if (flags.donate && sin.donateToFaction(augFact, 0)) {
+      let donation = 1000;
+      const repNeeded = sin.getAugmentationRepReq(aug) - sin.getFactionRep(augFact);
+      while (ns.formulas.reputation.repFromDonation((donation += 1e4), ns.getPlayer()) < repNeeded) {
+        /* empty */
+      }
+      if (donation + sin.getAugmentationPrice(aug) < ns.getServerMoneyAvailable('home')) {
+        sin.donateToFaction(augFact, donation);
+      }
+    }
     sin.purchaseAugmentation(augFact, aug);
   }
 
@@ -66,6 +103,6 @@ export async function main(ns: NS): Promise<void> {
     sin.purchaseAugmentation(maxFact, 'NeuroFlux Governor');
     await ns.sleep(100);
   }
-  const install = await ns.prompt('Install?', { type: 'boolean' });
+  if (flags.prompt) install = await ns.prompt('Install?', { type: 'boolean' });
   if (install) sin.installAugmentations('startup.js');
 }
