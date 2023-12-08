@@ -10,12 +10,14 @@ import {
   UniversityServers,
   getSkill,
   installBackdoor,
+  getKeys,
 } from './helpers';
 
 const argsSchema: [string, string | number | boolean | string[]][] = [
   ['g', false],
   ['b', false],
   ['e', false],
+  ['graft', false],
 ];
 
 const strength = 'strength';
@@ -299,7 +301,7 @@ async function progStudent(ns: NS, target: number = Number.MAX_SAFE_INTEGER, sch
   }
   await ns.sleep(100);
   dispatchEvent(esc); // Not actually sure this is doing anything, might remove later to test.
-  const income = (ns.getServerMoneyAvailable('home') / (Date.now() - ns.getResetInfo().lastAugReset)) * 1000;
+  const income = (ns.getServerMoneyAvailable('home') / (Date.now() - ns.getResetInfo().lastAugReset)) * 10;
   if (income > 960 * 2) {
     if (ns.formulas.work.universityGains(player, UniversityClassType.algorithms, school).hackExp > hackGain)
       course = UniversityClassType.algorithms;
@@ -327,6 +329,7 @@ async function progStudent(ns: NS, target: number = Number.MAX_SAFE_INTEGER, sch
   }
   let server = ns.getServer(UniversityServers.get(school)!);
   while (player.skills.hacking < target) {
+    await grafting(ns);
     if (ns.hacknet.hashCost('Improve Studying') <= 500) {
       ns.hacknet.spendHashes('Improve Studying');
     }
@@ -355,7 +358,7 @@ async function busStudent(ns: NS, target: number = Number.MAX_SAFE_INTEGER, scho
     return;
   }
   let course = UniversityClassType.management;
-  if ((ns.getServerMoneyAvailable('home') / (Date.now() - ns.getResetInfo().lastAugReset)) * 1000 > 960 * 2) {
+  if ((ns.getServerMoneyAvailable('home') / (Date.now() - ns.getResetInfo().lastAugReset)) * 10 > 960 * 2) {
     course = UniversityClassType.leadership;
   }
 
@@ -425,24 +428,28 @@ async function workout(ns: NS, stat: string, target: number, gym?: LocationName)
   switch (stat) {
     case 'strength':
       while (player.skills.strength < target) {
+        if (await grafting(ns, false, true)) sin.gymWorkout(gym, stat, focus);
         await ns.sleep(waitTime);
         player = ns.getPlayer();
       }
       break;
     case 'defense':
       while (player.skills.defense < target) {
+        if (await grafting(ns, false, true)) sin.gymWorkout(gym, stat, focus);
         await ns.sleep(waitTime);
         player = ns.getPlayer();
       }
       break;
     case 'dexterity':
       while (player.skills.dexterity < target) {
+        if (await grafting(ns, false, true)) sin.gymWorkout(gym, stat, focus);
         await ns.sleep(waitTime);
         player = ns.getPlayer();
       }
       break;
     case 'agility':
       while (player.skills.agility < target) {
+        if (await grafting(ns, false, true)) sin.gymWorkout(gym, stat, focus);
         await ns.sleep(waitTime);
         player = ns.getPlayer();
       }
@@ -493,11 +500,28 @@ async function hacker(ns: NS) {
   const sin = ns.singularity;
 
   for (let i = 0; i < hackerFactions.length; i++) {
+    await grafting(ns);
     const faction = hackerFactions[i];
-    const factAugs = availableAugments(ns, faction, false);
+    const factAugs = availableAugments(ns, faction);
     if (factAugs.length > 0) {
+      ns.print(faction + ' augs remaining : ' + factAugs.length);
       let maxRep = 0;
       let server = ns.getServer(factionServers.get(faction));
+      let keys = getKeys(ns);
+      while ((server.numOpenPortsRequired ? server.numOpenPortsRequired : 0) > keys[0]) {
+        if (sin.purchaseTor() && sin.getDarkwebProgramCost(keys[1][0]) < ns.getServerMoneyAvailable('home')) {
+          sin.purchaseProgram(keys[1][0]);
+          await ns.sleep(waitTime);
+        } else if (sin.getCurrentWork().type == 'CREATE_PROGRAM') {
+          await ns.sleep(waitTime * 10);
+        } else if (!sin.createProgram(keys[1][0], focus)) {
+          await progStudent(ns, ns.getHackingLevel() + 10);
+        } else {
+          ns.setTitle('Hacker: Creating ' + keys[1][0]);
+          await ns.sleep(waitTime * 10);
+        }
+        keys = getKeys(ns);
+      }
       if (!server.backdoorInstalled) {
         while (!ns.hasRootAccess(server.hostname)) {
           ns.run('nuke.js', 1, server.hostname);
@@ -816,4 +840,69 @@ export function availableAugments(ns: NS, faction: string, prereqs = true): stri
     });
   }
   return result;
+}
+
+async function grafting(ns: NS, hacking = true, combat = false) {
+  const flags = ns.flags(argsSchema);
+  if (!flags.graft) {
+    return false;
+  }
+  const sin = ns.singularity;
+  const gr = ns.grafting;
+  const owned = sin.getOwnedAugmentations(true);
+  const grafts = gr.getGraftableAugmentations().filter((aug) => {
+    const prereq = sin.getAugmentationPrereq(aug);
+    for (const req of prereq) {
+      if (!owned.includes(req)) {
+        return false;
+      }
+    }
+    return true;
+  });
+  const toInstall: string[] = [];
+  if (hacking) {
+    toInstall.push(
+      ...grafts.filter((aug) => {
+        const stats = sin.getAugmentationStats(aug);
+        return (
+          stats.hacking ||
+          stats.hacking_chance ||
+          stats.hacking_exp ||
+          stats.hacking_grow ||
+          stats.hacking_money ||
+          stats.hacking_speed
+        );
+      }),
+    );
+  }
+  if (combat) {
+    toInstall.push(
+      ...grafts.filter((aug) => {
+        const stats = sin.getAugmentationStats(aug);
+        return (
+          stats.agility ||
+          stats.agility_exp ||
+          stats.defense ||
+          stats.defense_exp ||
+          stats.dexterity ||
+          stats.dexterity_exp ||
+          stats.strength ||
+          stats.strength_exp
+        );
+      }),
+    );
+  }
+  if (toInstall.length == 0) {
+    toInstall.push(...grafts);
+  } else if (grafts.includes('nickofolas Congruity Implant')) toInstall.push('nickofolas Congruity Implant');
+  toInstall.sort((a, b) => gr.getAugmentationGraftPrice(b) - gr.getAugmentationGraftPrice(a));
+  for (const aug of toInstall) {
+    if (gr.getAugmentationGraftPrice(aug) < ns.getServerMoneyAvailable('home')) {
+      sin.travelToCity('New Tokyo');
+      ns.print('WARN: Grafting ' + aug);
+      gr.graftAugmentation(aug, focus);
+      await ns.sleep(gr.getAugmentationGraftTime(aug));
+      return true;
+    }
+  }
 }
