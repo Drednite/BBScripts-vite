@@ -1,5 +1,5 @@
 import { AutocompleteData, NS } from '@ns';
-import { HOMERAMRES } from './helpers';
+import { HOMERAMRES, orgStock } from './helpers';
 
 /** @param {NS} ns **/
 export async function main(ns: NS) {
@@ -19,10 +19,12 @@ export async function main(ns: NS) {
   // and you might become unable to execute any other scripts on 'home' until you kill the process.
   let target = ns.getServer(ns.args[0].toString());
   let serverToHackFrom = target; // For single argument calls - server will hack itself
-  const hackScript = 'hack.js';
-  const growScript = 'grow.js';
+  const neededScripts = ['hack.js', 'grow.js', 'weaken.js', 'hackst.js', 'growst.js'];
+  let hackScript = 'hack.js';
+  let growScript = 'grow.js';
   const weakenScript = 'weaken.js';
   const growScriptRAM = ns.getScriptRam(growScript);
+  const st = ns.stock;
   let serverMaxMoney = target.moneyMax ? target.moneyMax : 0;
   let serverMaxRAM;
   let moneyThresh = serverMaxMoney * 0.9; // 0.90 to maintain near 100% server money.  You can use 0.75 when starting out/using low thread counts
@@ -65,14 +67,10 @@ export async function main(ns: NS) {
     serverToHackFrom = ns.getServer(serverToHackFrom.hostname);
   }
   // Copy the work scripts, if not already on server
-  if (!ns.fileExists(hackScript, serverToHackFrom.hostname)) {
-    ns.scp(hackScript, serverToHackFrom.hostname, 'home');
-  }
-  if (!ns.fileExists(growScript, serverToHackFrom.hostname)) {
-    ns.scp(growScript, serverToHackFrom.hostname, 'home');
-  }
-  if (!ns.fileExists(weakenScript, serverToHackFrom.hostname)) {
-    ns.scp(weakenScript, serverToHackFrom.hostname, 'home');
+  for (const script of neededScripts) {
+    if (!ns.fileExists(script, serverToHackFrom.hostname)) {
+      ns.scp(script, serverToHackFrom.hostname, 'home');
+    }
   }
   // To prevent the script from crashing/terminating after closing and restarting the game.
   // while (ns.scriptRunning(weakenScript, serverToHackFrom.hostname)
@@ -93,6 +91,18 @@ export async function main(ns: NS) {
       ns.scriptRunning(hackScript, serverToHackFrom.hostname)
     ) {
       await ns.sleep(sleepDelay);
+    }
+    if (st.has4SDataTIXAPI()) {
+      const org = orgStock.get(target.organizationName);
+      if (org) {
+        if (st.getForecast(org) > 0.5) {
+          hackScript = 'hack.js';
+          growScript = 'growst.js';
+        } else {
+          hackScript = 'hackst.js';
+          growScript = 'grow.js';
+        }
+      }
     }
     target = ns.getServer(target.hostname);
     serverToHackFrom = ns.getServer(serverToHackFrom.hostname);

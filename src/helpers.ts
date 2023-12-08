@@ -1,4 +1,4 @@
-import { NS, Person } from '@ns';
+import { NS } from '@ns';
 
 export async function main(ns: NS): Promise<void> {
   ns.tprint('This is just a collection of helper functions to be imported into other scripts.');
@@ -23,6 +23,26 @@ export async function getAllServers(ns: NS): Promise<string[]> {
   }
   dfs('home');
   return [...nodes];
+}
+
+/**
+ * Returns an array containing the number of keys owned and a subarray of keys still needing to be bought/made
+ * @param ns netscript namespace
+ * @returns [number, string[]]
+ */
+export function getKeys(ns: NS): [number, string[]] {
+  const keys: [number, string[]] = [0, []];
+  if (ns.fileExists('BruteSSH.exe')) keys[0]++;
+  else keys[1].push('BruteSSH.exe');
+  if (ns.fileExists('FTPCrack.exe')) keys[0]++;
+  else keys[1].push('FTPCrack.exe');
+  if (ns.fileExists('relaySMTP.exe')) keys[0]++;
+  else keys[1].push('relaySMTP.exe');
+  if (ns.fileExists('HTTPWorm.exe')) keys[0]++;
+  else keys[1].push('HTTPWorm.exe');
+  if (ns.fileExists('SQLInject.exe')) keys[0]++;
+  else keys[1].push('SQLInject.exe');
+  return keys;
 }
 
 export const factions = new Map<string, string>([
@@ -113,6 +133,42 @@ export enum CompanyName {
   OmegaSoftware = 'Omega Software',
   NoodleBar = 'Noodle Bar',
 }
+
+export const orgStock = new Map<string, string>([
+  [CompanyName.ECorp, 'ECP'],
+  [CompanyName.MegaCorp, 'MGCP'],
+  [CompanyName.BladeIndustries, 'BLD'],
+  [CompanyName.ClarkeIncorporated, 'CLRK'],
+  [CompanyName.OmniTekIncorporated, 'OMTK'],
+  [CompanyName.FourSigma, 'FSIG'],
+  [CompanyName.KuaiGongInternational, 'KGI'],
+  [CompanyName.FulcrumTechnologies, 'FLCM'],
+  [CompanyName.StormTechnologies, 'STM'],
+  [CompanyName.DefComm, 'DCOMM'],
+  [CompanyName.HeliosLabs, 'HLS'],
+  [CompanyName.VitaLife, 'VITA'],
+  [CompanyName.IcarusMicrosystems, 'ICRS'],
+  [CompanyName.UniversalEnergy, 'UNV'],
+  [CompanyName.AeroCorp, 'AERO'],
+  [CompanyName.OmniaCybersystems, 'OMN'],
+  [CompanyName.SolarisSpaceSystems, 'SLRS'],
+  [CompanyName.GlobalPharmaceuticals, 'GPH'],
+  [CompanyName.NovaMedical, 'NVMD'],
+  [CompanyName.WatchdogSecurity, 'WDS'],
+  [CompanyName.LexoCorp, 'LXO'],
+  [CompanyName.RhoConstruction, 'RHOC'],
+  [CompanyName.AlphaEnterprises, 'APHE'],
+  [CompanyName.SysCoreSecurities, 'SYSC'],
+  [CompanyName.CompuTek, 'CTK'],
+  [CompanyName.NetLinkTechnologies, 'NTLK'],
+  [CompanyName.OmegaSoftware, 'OMGA'],
+  [CompanyName.FoodNStuff, 'FNS'],
+  ['Sigma Cosmetics', 'SGC'],
+  [CompanyName.JoesGuns, 'JGN'],
+  ['Catalyst Ventures', 'CTYS'],
+  ['Microdyne Technologies', 'MDYN'],
+  ['Titan Laboratories', 'TITN'],
+]);
 
 /** @public */
 export enum JobName {
