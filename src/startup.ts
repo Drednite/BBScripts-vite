@@ -3,22 +3,23 @@ import { NS } from '@ns';
 /** @param {NS} ns */
 export async function main(ns: NS) {
   const mults = ns.getBitNodeMultipliers();
+  ns.tprint(ns.read('notes.txt'));
   // eslint-disable-next-line prettier/prettier
   const startList: (string | string[])[] = [
     ['crawler.js', '--daemon', '--share', '-o']
   ];
-  if (Date.now() - ns.getResetInfo().lastAugReset < 1.8e6) {
+  if (mults.ScriptHackMoneyGain > 0 && Date.now() - ns.getResetInfo().lastAugReset < 1.8e6) {
     startList.push('whip.js');
   }
   const augments = ns.singularity.getOwnedAugmentations();
-  const worker = ['worker.js'];
+  const worker = ['worker.js', '--graft'];
   const sleeve = ['dev/sleeve.js'];
   if (mults.GangSoftcap > 0) {
     worker.push('-g');
   } else {
     sleeve.push('--disable-gang-homicide-priority');
   }
-  if (mults.CompanyWorkMoney > 0) {
+  if (mults.CompanyWorkExpGain > 0 || mults.CompanyWorkMoney > 0) {
     worker.push('-e');
   }
   if (mults.BladeburnerRank > 0) {
