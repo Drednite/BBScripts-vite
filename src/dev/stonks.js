@@ -1,11 +1,12 @@
 import { DefaultStyle, PrintTable } from './tables';
 
-let getTail = false;
+let getTail = true;
 const width = 900;
 const height = 1000;
 let g_tixMode = false; // Global variable indicating if we have full 4S data or not (it is automatically
 // set/determined later in script no point changing the value here)
 let SHORTS = false; // Global to determine whether or not we have access to shorts (this is updated at the start of the script)
+let reserve = 0;
 
 const LOG_SIZE = 15; // How many prices we keep in the log for blind/pre-4S trading for each symbol
 const BUY_TRIGGER = 0.1; // deviation from 0.5 (neutral) from which we start buying
@@ -241,8 +242,8 @@ function BuyStonks(ns, log) {
   // If you're buying Long, you want Ask price. Long stocks sell for Bid price.
   // If you're buying Short, you want Bid price. Short stocks sell for Ask price.
 
-  let budget = ns.getServerMoneyAvailable('home') - 10_000_000;
-  if (budget < 10_000_000) return;
+  let budget = ns.getServerMoneyAvailable('home') - reserve;
+  if (budget < reserve) return;
 
   let stonks = log
     .map((s) => s)
@@ -394,8 +395,8 @@ function ReportCurrentSnapshot(ns, stonks) {
     { color: 'white', text: '' },
     { color: 'white', text: '' },
     { color: 'white', text: ns.formatNumber(sum[0]).padStart(9) },
-    { color: 'white', text: ns.formatNumber(sum[1]).padStart(9) },
     { color: 'white', text: ns.formatNumber(sum[2]).padStart(9) },
+    { color: 'white', text: ns.formatNumber(sum[1]).padStart(9) },
     { color: 'white', text: ns.formatNumber(sum[3]).padStart(9) },
     { color: 'white', text: pct },
   ]);
@@ -403,6 +404,8 @@ function ReportCurrentSnapshot(ns, stonks) {
   PrintTable(ns, data, columns, DefaultStyle(), ns.print);
 
   let totalWorth = total.paid + total.profit + ns.getServerMoneyAvailable('home');
+  reserve = totalWorth * 0.001;
+  // ns.print('Reserve: ' + ns.formatNumber(reserve));
   UpdateHud(ns, totalWorth);
 
   const snaps = stonks[0].snapshots.length;
@@ -521,16 +524,16 @@ export class Stonk {
   }
 }
 
-/** @param {NS} ns **/
-function GetStonksBalance(ns) {
-  let boxes = Array.from(eval('document').querySelectorAll('[class*=MuiBox-root]'));
-  let box = boxes.find((s) => getProps(s)?.player);
-  if (!box) return 0;
-  let props = getProps(box);
-  if (!props) return 0;
-  return props.player.moneySourceA.stock;
-}
+// /** @param {NS} ns **/
+// function GetStonksBalance(ns) {
+//   let boxes = Array.from(eval('document').querySelectorAll('[class*=MuiBox-root]'));
+//   let box = boxes.find((s) => getProps(s)?.player);
+//   if (!box) return 0;
+//   let props = getProps(box);
+//   if (!props) return 0;
+//   return props.player.moneySourceA.stock;
+// }
 
-function getProps(obj) {
-  return Object.entries(obj).find((entry) => entry[0].startsWith('__reactProps'))[1]?.children?.props;
-}
+// function getProps(obj) {
+//   return Object.entries(obj).find((entry) => entry[0].startsWith('__reactProps'))[1]?.children?.props;
+// }
