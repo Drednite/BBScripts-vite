@@ -19,8 +19,13 @@ export async function main(ns: NS) {
   } else {
     sleeve.push('--disable-gang-homicide-priority');
   }
-  if (mults.CompanyWorkExpGain > 0 || mults.CompanyWorkMoney > 0) {
+  if (mults.CompanyWorkMoney > 0) {
     worker.push('-e');
+  }
+  if (ns.stock.hasWSEAccount()) {
+    startList.push('dev/stonks.js');
+    startList.push('stockReporter.js');
+    worker.push('-s');
   }
   if (mults.BladeburnerRank > 0) {
     if (ns.bladeburner.inBladeburner()) {
@@ -53,13 +58,6 @@ export async function main(ns: NS) {
 
   if (ns.gang.inGang()) {
     startList.push('Shogal.js');
-  }
-
-  if (ns.stock.hasWSEAccount()) {
-    if (ns.stock.hasTIXAPIAccess()) {
-      startList.push('dev/stonks.js');
-    }
-    startList.push('stockReporter.js');
   }
 
   if (ns.sleeve.getNumSleeves() > 0) {
