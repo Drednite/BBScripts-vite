@@ -1,6 +1,6 @@
 import { DefaultStyle, PrintTable } from './tables';
 
-let getTail = true;
+let getTail;
 const width = 900;
 const height = 1000;
 let g_tixMode = false; // Global variable indicating if we have full 4S data or not (it is automatically
@@ -25,7 +25,7 @@ const BENCH_TIME = 1000 * 60 * 60; // How long we wait before reporting profitab
 /** @param {NS} ns **/
 export async function main(ns) {
   ns.disableLog('ALL');
-
+  getTail = true;
   let initialFunds = ns.getServerMoneyAvailable('home');
 
   // This code determines if we have access to shorts or not
@@ -159,6 +159,7 @@ function SellStonks(ns, log, dump) {
       continue;
     }
 
+    const date = new Date();
     ns.tprint(
       'WARN: Selling ' +
         ns.formatNumber(stonk.nbShares) +
@@ -168,7 +169,13 @@ function SellStonks(ns, log, dump) {
         ns.formatNumber(stonk.GetValue()) +
         ' ($' +
         ns.formatNumber(stonk.GetProfit()) +
-        ' profit)',
+        ' profit) [' +
+        date.getHours() +
+        ':' +
+        date.getMinutes() +
+        ':' +
+        date.getSeconds() +
+        ']',
     );
     if (dump)
       ns.tprint(
@@ -210,6 +217,7 @@ function SellStonks(ns, log, dump) {
         continue;
       }
 
+      const date = new Date();
       ns.tprint(
         'WARN: Selling ' +
           ns.formatNumber(stonk.nbShorts) +
@@ -219,7 +227,13 @@ function SellStonks(ns, log, dump) {
           ns.formatNumber(stonk.GetValue()) +
           ' ($' +
           ns.formatNumber(stonk.GetProfit()) +
-          ' profit)',
+          ' profit) [' +
+          date.getHours() +
+          ':' +
+          date.getMinutes() +
+          ':' +
+          date.getSeconds() +
+          ']',
       );
       if (dump)
         ns.tprint(
@@ -231,13 +245,21 @@ function SellStonks(ns, log, dump) {
             ns.formatNumber(stonk.GetValue()) +
             ' ($' +
             ns.formatNumber(stonk.GetProfit()) +
-            ' profit)',
+            ' profit) [' +
+            ns.tFormat(Date.now()) +
+            date.getHours() +
+            ':' +
+            date.getMinutes() +
+            ':' +
+            date.getSeconds() +
+            ']',
         );
       ns.stock.sellShort(stonk.sym, stonk.nbShorts);
     }
   }
 }
 
+/** @param {NS} ns */
 function BuyStonks(ns, log) {
   // If you're buying Long, you want Ask price. Long stocks sell for Bid price.
   // If you're buying Short, you want Bid price. Short stocks sell for Ask price.
@@ -278,6 +300,7 @@ function BuyStonks(ns, log) {
     }
 
     // Buy some stocks!
+    const date = new Date();
     ns.tprint(
       'INFO: Buying ' +
         ns.formatNumber(maxShares) +
@@ -286,7 +309,14 @@ function BuyStonks(ns, log) {
         ' shares of ' +
         stonk.sym +
         ' at price $' +
-        ns.formatNumber(maxShares * sharePrice),
+        ns.formatNumber(maxShares * sharePrice) +
+        ' [' +
+        date.getHours() +
+        ':' +
+        date.getMinutes() +
+        ':' +
+        date.getSeconds() +
+        ']',
     );
 
     if (stonk.forecast < 0.5 && !SHORTS) continue;

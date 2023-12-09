@@ -102,6 +102,7 @@ export async function main(ns: NS) {
           hackScript = 'hackst.js';
           growScript = 'grow.js';
         }
+        ns.printf('Stock 4S: %g', st.getForecast(org));
       }
     }
     target = ns.getServer(target.hostname);
