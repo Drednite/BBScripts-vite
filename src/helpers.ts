@@ -170,6 +170,38 @@ export const orgStock = new Map<string, string>([
   ['Titan Laboratories', 'TITN'],
 ]);
 
+export const stockComp = new Map<string, CompanyName>([
+  ['ECP', CompanyName.ECorp],
+  ['MGCP', CompanyName.MegaCorp],
+  ['BLD', CompanyName.BladeIndustries],
+  ['CLRK', CompanyName.ClarkeIncorporated],
+  ['OMTK', CompanyName.OmniTekIncorporated],
+  ['FSIG', CompanyName.FourSigma],
+  ['KGI', CompanyName.KuaiGongInternational],
+  ['FLCM', CompanyName.FulcrumTechnologies],
+  ['STM', CompanyName.StormTechnologies],
+  ['DCOMM', CompanyName.DefComm],
+  ['HLS', CompanyName.HeliosLabs],
+  ['VITA', CompanyName.VitaLife],
+  ['ICRS', CompanyName.IcarusMicrosystems],
+  ['UNV', CompanyName.UniversalEnergy],
+  ['AERO', CompanyName.AeroCorp],
+  ['OMN', CompanyName.OmniaCybersystems],
+  ['SLRS', CompanyName.SolarisSpaceSystems],
+  ['GPH', CompanyName.GlobalPharmaceuticals],
+  ['NVMD', CompanyName.NovaMedical],
+  ['WDS', CompanyName.WatchdogSecurity],
+  ['LXO', CompanyName.LexoCorp],
+  ['RHOC', CompanyName.RhoConstruction],
+  ['APHE', CompanyName.AlphaEnterprises],
+  ['SYSC', CompanyName.SysCoreSecurities],
+  ['CTK', CompanyName.CompuTek],
+  ['NTLK', CompanyName.NetLinkTechnologies],
+  ['OMGA', CompanyName.OmegaSoftware],
+  ['FNS', CompanyName.FoodNStuff],
+  ['JGN', CompanyName.JoesGuns],
+]);
+
 /** @public */
 export enum JobName {
   software0 = 'Software Engineering Intern',

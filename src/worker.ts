@@ -11,12 +11,14 @@ import {
   getSkill,
   installBackdoor,
   getKeys,
+  stockComp,
 } from './helpers';
 
 const argsSchema: [string, string | number | boolean | string[]][] = [
   ['g', false],
   ['b', false],
   ['e', false],
+  ['s', false],
   ['graft', false],
 ];
 
@@ -62,7 +64,31 @@ const factionServers = new Map([
   [CompanyName.FulcrumTechnologies, 'fulcrumtech'],
 ]);
 
+const megacorps = [
+  CompanyName.ECorp,
+  CompanyName.MegaCorp,
+  CompanyName.KuaiGongInternational,
+  CompanyName.FourSigma,
+  CompanyName.NWO,
+  CompanyName.BladeIndustries,
+  CompanyName.OmniTekIncorporated,
+  CompanyName.BachmanAndAssociates,
+  CompanyName.ClarkeIncorporated,
+  CompanyName.FulcrumTechnologies,
+];
+const positions = [
+  JobName.software0,
+  JobName.software1,
+  JobName.software2,
+  JobName.software3,
+  JobName.software4,
+  JobName.software5,
+  JobName.software6,
+  JobName.software7,
+];
+
 let focus = true;
+let stocks = false;
 const waitTime = 1000;
 const esc = new KeyboardEvent('keypress', { key: 'Escape' });
 
@@ -71,6 +97,7 @@ export async function main(ns: NS): Promise<void> {
   await ns.sleep(waitTime);
   ns.disableLog('ALL');
   const sin = ns.singularity;
+  stocks = flags.s != false;
   focus = !sin.getOwnedAugmentations().includes('Neuroreceptor Management Implant');
   ns.tail();
   ns.resizeTail(545, 300);
@@ -78,6 +105,10 @@ export async function main(ns: NS): Promise<void> {
   ns.atExit(() => {
     ns.closeTail();
   });
+  while (sin.getCurrentWork() && sin.getCurrentWork().type == 'GRAFTING') {
+    ns.setTitle('Worker: Finishing up graft...');
+    await ns.sleep(waitTime);
+  }
 
   if (!sin.getOwnedAugmentations(true).includes('Neuroreceptor Management Implant')) {
     await progStudent(ns, 50);
@@ -135,10 +166,14 @@ export async function main(ns: NS): Promise<void> {
   while (await endgame(ns)) {
     await ns.sleep(waitTime);
   }
+  while (stocks) {
+    await stockWorker(ns);
+    await grafting(ns, true, false);
+  }
 }
 
 /**
- * @todo Work for each megacorp until enough you have enough rep to gain access to their faction, then work for each faction until all of
+ * Work for each megacorp until enough you have enough rep to gain access to their faction, then work for each faction until all of
  * their augments can be bought
  * @param {NS} ns
  */
@@ -147,28 +182,6 @@ async function employee(ns: NS) {
   const player = ns.getPlayer();
   ns.setTitle('Employee');
   ns.print('Starting employee cycle...');
-  const megacorps = [
-    CompanyName.ECorp,
-    CompanyName.MegaCorp,
-    CompanyName.KuaiGongInternational,
-    CompanyName.FourSigma,
-    CompanyName.NWO,
-    CompanyName.BladeIndustries,
-    CompanyName.OmniTekIncorporated,
-    CompanyName.BachmanAndAssociates,
-    CompanyName.ClarkeIncorporated,
-    CompanyName.FulcrumTechnologies,
-  ];
-  const positions = [
-    JobName.software0,
-    JobName.software1,
-    JobName.software2,
-    JobName.software3,
-    JobName.software4,
-    JobName.software5,
-    JobName.software6,
-    JobName.software7,
-  ];
 
   for (let i = 0; i < megacorps.length; i++) {
     let faction: string = megacorps[i];
@@ -259,6 +272,10 @@ async function employee(ns: NS) {
   }
 }
 
+/**
+ * Works to join Bladeburner Division
+ * @param ns netscript namespace
+ */
 async function bbRecruit(ns: NS) {
   const bb = ns.bladeburner;
   if (!bb.inBladeburner()) {
@@ -268,7 +285,7 @@ async function bbRecruit(ns: NS) {
     await workout(ns, dexterity, 100);
     await workout(ns, agility, 100);
     bb.joinBladeburnerDivision();
-    bb.joinBladeburnerFaction();
+    // bb.joinBladeburnerFaction();
   }
 }
 
@@ -329,7 +346,7 @@ async function progStudent(ns: NS, target: number = Number.MAX_SAFE_INTEGER, sch
   }
   let server = ns.getServer(UniversityServers.get(school)!);
   while (player.skills.hacking < target) {
-    await grafting(ns);
+    await grafting(ns, true, false);
     if (ns.hacknet.hashCost('Improve Studying') <= 500) {
       ns.hacknet.spendHashes('Improve Studying');
     }
@@ -500,7 +517,6 @@ async function hacker(ns: NS) {
   const sin = ns.singularity;
 
   for (let i = 0; i < hackerFactions.length; i++) {
-    await grafting(ns);
     const faction = hackerFactions[i];
     const factAugs = availableAugments(ns, faction);
     if (factAugs.length > 0) {
@@ -562,7 +578,7 @@ async function hacker(ns: NS) {
 }
 
 /**
- * @todo
+ * Works to qualify for an endgame faction the player doesn't already qualify for.
  * @param {NS} ns
  */
 async function endgame(ns: NS) {
@@ -632,7 +648,11 @@ async function endgame(ns: NS) {
           ns.formatNumber(75e9),
         ),
       );
-      await ns.sleep(waitTime);
+      if (stocks) {
+        await stockWorker(ns);
+      } else {
+        await ns.sleep(waitTime);
+      }
     }
     manageInvites(ns);
     await ns.sleep(waitTime);
@@ -679,7 +699,11 @@ async function endgame(ns: NS) {
           ns.formatNumber(150e9),
         ),
       );
-      await ns.sleep(waitTime);
+      if (stocks) {
+        await stockWorker(ns);
+      } else {
+        await ns.sleep(waitTime);
+      }
     }
     manageInvites(ns);
     await ns.sleep(waitTime);
@@ -735,7 +759,11 @@ async function endgame(ns: NS) {
             ns.formatNumber(100e9),
           ),
         );
-        await ns.sleep(waitTime);
+        if (stocks) {
+          await stockWorker(ns);
+        } else {
+          await ns.sleep(waitTime);
+        }
       }
       manageInvites(ns);
     }
@@ -794,16 +822,16 @@ function manageInvites(ns: NS, target?: string): boolean {
  * Does work with highest reputation gain for faction.
  * @param ns
  * @param faction - Faction to work for.
- * @param repTarget - (optional) If above this reputation, do nothing.
+ * @param repTarget - (optional) sleep until reaching target reputation.
  * @returns true if work is started, false otherwise.
  */
-async function factionWork(ns: NS, faction: string, repTarget = Number.MAX_SAFE_INTEGER) {
+async function factionWork(ns: NS, faction: string, repTarget = 0) {
   const sin = ns.singularity;
   const player = ns.getPlayer();
   if (!player.factions.includes(faction)) {
     return false;
   }
-  if (sin.getFactionRep(faction) > repTarget) {
+  if (repTarget > 0 && sin.getFactionRep(faction) > repTarget) {
     return true;
   }
   const factWork: FactionWorkType[] = [FactionWorkType.hacking, FactionWorkType.field, FactionWorkType.security];
@@ -820,9 +848,28 @@ async function factionWork(ns: NS, faction: string, repTarget = Number.MAX_SAFE_
   }
 
   sin.workForFaction(faction, bestWork, focus);
+  while (sin.getFactionRep(faction) < repTarget) {
+    ns.setTitle(
+      ns.sprintf(
+        'Faction Work: %s %s [%s/%s]',
+        faction,
+        bestWork,
+        ns.formatNumber(sin.getFactionRep(faction)),
+        ns.formatNumber(repTarget),
+      ),
+    );
+    await ns.sleep(waitTime);
+  }
   return true;
 }
 
+/**
+ * Checks a faction's augments and returns an array containing all of the augments the player doesn't already have.
+ * @param ns netscript namespace
+ * @param faction faction to check for augments
+ * @param prereqs exclude augments which the player doesn't have the prereqs for
+ * @returns array containing the names of available augments
+ */
 export function availableAugments(ns: NS, faction: string, prereqs = true): string[] {
   const sin = ns.singularity;
   const owned = sin.getOwnedAugmentations(true);
@@ -842,6 +889,13 @@ export function availableAugments(ns: NS, faction: string, prereqs = true): stri
   return result;
 }
 
+/**
+ * If it can be afforded, travel to New Tokyo and graft an augment
+ * @param ns netscript namespace
+ * @param hacking graft hacking augments
+ * @param combat graft combat augments
+ * @returns true if graft was successfully started and waited for, false otherwise
+ */
 async function grafting(ns: NS, hacking = true, combat = false) {
   const flags = ns.flags(argsSchema);
   if (!flags.graft) {
@@ -865,12 +919,12 @@ async function grafting(ns: NS, hacking = true, combat = false) {
       ...grafts.filter((aug) => {
         const stats = sin.getAugmentationStats(aug);
         return (
-          stats.hacking ||
-          stats.hacking_chance ||
-          stats.hacking_exp ||
-          stats.hacking_grow ||
-          stats.hacking_money ||
-          stats.hacking_speed
+          stats.hacking > 1 ||
+          stats.hacking_chance > 1 ||
+          stats.hacking_exp > 1 ||
+          stats.hacking_grow > 1 ||
+          stats.hacking_money > 1 ||
+          stats.hacking_speed > 1
         );
       }),
     );
@@ -880,14 +934,14 @@ async function grafting(ns: NS, hacking = true, combat = false) {
       ...grafts.filter((aug) => {
         const stats = sin.getAugmentationStats(aug);
         return (
-          stats.agility ||
-          stats.agility_exp ||
-          stats.defense ||
-          stats.defense_exp ||
-          stats.dexterity ||
-          stats.dexterity_exp ||
-          stats.strength ||
-          stats.strength_exp
+          stats.agility > 1 ||
+          stats.agility_exp > 1 ||
+          stats.defense > 1 ||
+          stats.defense_exp > 1 ||
+          stats.dexterity > 1 ||
+          stats.dexterity_exp > 1 ||
+          stats.strength > 1 ||
+          stats.strength_exp > 1
         );
       }),
     );
@@ -905,4 +959,53 @@ async function grafting(ns: NS, hacking = true, combat = false) {
       return true;
     }
   }
+}
+
+async function stockWorker(ns: NS, keep?: boolean) {
+  const sin = ns.singularity;
+  const st = ns.stock;
+  do {
+    sin.stopAction();
+    const stakes: [string, number][] = [];
+    for (const sym of st.getSymbols()) {
+      const pos = st.getPosition(sym);
+      if (pos[0] * pos[1] > 0) {
+        stakes.push([sym, pos[0] * pos[1]]);
+      }
+    }
+    if (stakes.length > 0) {
+      stakes.sort((a, b) => b[1] - a[1]);
+      let currPos = 0;
+      let sym = '';
+      let company;
+      let found = false;
+      for (let i = 0; i < stakes.length && !found; i++) {
+        company = stockComp.get(stakes[i][0]);
+        if (company) {
+          try {
+            sin.applyToCompany(company, 'Software');
+            if (sin.workForCompany(company, focus)) {
+              sym = stakes[i][0];
+              currPos = st.getPosition(sym)[0];
+              found = true;
+            }
+          } catch {
+            company = undefined;
+          }
+        }
+      }
+      if (found) {
+        ns.print('Working for ' + company + ' to improve stock');
+        while (company && st.getPosition(sym)[0] == currPos) {
+          ns.setTitle('Stock Work: ' + company + ' : ' + ns.formatPercent(st.getForecast(sym)));
+          await ns.sleep(waitTime);
+          sin.applyToCompany(company, 'Software');
+        }
+        sin.stopAction();
+      } else {
+        await st.nextUpdate();
+      }
+    }
+    await st.nextUpdate();
+  } while (keep);
 }
