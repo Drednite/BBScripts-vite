@@ -1,5 +1,5 @@
 import { NS, ScriptArg } from '@ns';
-import { getAllServers } from './helpers';
+import { getAllServers, getKeys } from './helpers';
 
 let powerlessServers: string[] = [];
 
@@ -81,13 +81,15 @@ export async function attack(ns: NS, target: string, next: string): Promise<true
   powerlessServers.sort((a, b) => ns.getServerMaxRam(a) - ns.getServerMaxRam(b));
   const maxMoney = ns.getServerMaxMoney(target);
   let nextLevel;
+  let keys = getKeys(ns)[0];
+  const ports = ns.getServerNumPortsRequired(next);
   if (next === 'END') nextLevel = Number.MAX_SAFE_INTEGER;
   else nextLevel = ns.getServerRequiredHackingLevel(next) * 4;
   const delayTime =
     Math.min(ns.getWeakenTime(target) / powerlessServers.length, ns.getWeakenTime(target) - ns.getGrowTime(target)) +
     200;
   const tasks = [];
-  if (nextLevel < ns.getHackingLevel() && ns.getServerMoneyAvailable(target) > 0.9 * maxMoney) {
+  if (nextLevel < ns.getHackingLevel() && ns.getServerMoneyAvailable(target) > 0.9 * maxMoney && keys <= ports) {
     return ns.sleep(60);
   }
   ns.setTitle(ns.sprintf("<( {|})> => %'#16s => %'#4d", target, nextLevel));
@@ -103,8 +105,9 @@ export async function attack(ns: NS, target: string, next: string): Promise<true
   }
   tasks.push(ns.run('masterHack.js', { temporary: true }, target, 'home'));
   if (next === 'END') return ns.sleep(60);
-  while (nextLevel > ns.getHackingLevel() || ns.getServerMoneyAvailable(target) < 0.9 * maxMoney) {
+  while (nextLevel > ns.getHackingLevel() || ns.getServerMoneyAvailable(target) < 0.9 * maxMoney || keys < ports) {
     await ns.sleep(1000);
+    keys = getKeys(ns)[0];
   }
   tasks.forEach((task) => {
     ns.kill(task);
