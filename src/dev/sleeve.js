@@ -12,7 +12,7 @@ import {
 
 const argsSchema = [
   ['min-shock-recovery', 97], // Minimum shock recovery before attempting to train or do crime (Set to 100 to disable, 0 to recover fully)
-  ['shock-recovery', 0.05], // Set to a number between 0 and 1 to devote that ratio of time to periodic shock recovery (until shock is at 0)
+  ['shock-recovery', 0.1], // Set to a number between 0 and 1 to devote that ratio of time to periodic shock recovery (until shock is at 0)
   ['crime', null], // If specified, sleeves will perform only this crime regardless of stats
   ['homicide-chance-threshold', 0.5], // Sleeves on crime will automatically start homicide once their chance of success exceeds this ratio
   ['disable-gang-homicide-priority', false], // By default, sleeves will do homicide to farm Karma until we're in a gang. Set this flag to disable this priority.
@@ -334,6 +334,14 @@ async function pickSleeveTask(ns, playerInfo, playerWorkInfo, i, sleeve, canTrai
   }
   // Train if our sleeve's physical stats aren't where we want them
   if (canTrain) {
+    // If the shock is too high, no point training, just recover
+    if (sleeve.shock > options['min-shock-recovery'] * 0.5) {
+      return shockRecoveryTask(
+        sleeve,
+        i,
+        `shock is above ${options['min-shock-recovery'].toFixed(0) * 0.5}% (--min-shock-recovery)`,
+      );
+    }
     let untrainedStats = trainStats.filter((stat) => sleeve.skills[stat] < options[`train-to-${stat}`]);
     if (untrainedStats.length > 0) {
       if (playerInfo.money < 5e6 && !promptedForTrainingBudget) await promptForTrainingBudget(ns); // If we've never checked, see if we can train into debt.
