@@ -19,6 +19,7 @@ const argsSchema: [string, string | number | boolean | string[]][] = [
   ['b', false],
   ['e', false],
   ['s', false],
+  ['stockEx', false],
   ['graft', false],
 ];
 
@@ -110,6 +111,9 @@ export async function main(ns: NS): Promise<void> {
     await ns.sleep(waitTime);
   }
 
+  while (flags.stockEx) {
+    await stockWorker(ns, true);
+  }
   if (!sin.getOwnedAugmentations(true).includes('Neuroreceptor Management Implant')) {
     await progStudent(ns, 50);
     ns.print('Working to get Neuroreceptor Management Implant...');
@@ -649,9 +653,13 @@ async function endgame(ns: NS) {
         ),
       );
       if (stocks) {
+        manageInvites(ns);
         await stockWorker(ns);
+        await factionWork(ns, ns.getPlayer().factions.sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
       } else {
+        manageInvites(ns);
         await ns.sleep(waitTime);
+        await factionWork(ns, ns.getPlayer().factions.sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
       }
     }
     manageInvites(ns);
@@ -700,9 +708,13 @@ async function endgame(ns: NS) {
         ),
       );
       if (stocks) {
+        manageInvites(ns);
         await stockWorker(ns);
+        await factionWork(ns, ns.getPlayer().factions.sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
       } else {
+        manageInvites(ns);
         await ns.sleep(waitTime);
+        await factionWork(ns, ns.getPlayer().factions.sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
       }
     }
     manageInvites(ns);
@@ -760,9 +772,13 @@ async function endgame(ns: NS) {
           ),
         );
         if (stocks) {
+          manageInvites(ns);
           await stockWorker(ns);
+          await factionWork(ns, ns.getPlayer().factions.sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
         } else {
+          manageInvites(ns);
           await ns.sleep(waitTime);
+          await factionWork(ns, ns.getPlayer().factions.sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
         }
       }
       manageInvites(ns);
@@ -965,7 +981,6 @@ async function stockWorker(ns: NS, keep?: boolean) {
   const sin = ns.singularity;
   const st = ns.stock;
   do {
-    sin.stopAction();
     const stakes: [string, number][] = [];
     for (const sym of st.getSymbols()) {
       const pos = st.getPosition(sym);
@@ -997,12 +1012,17 @@ async function stockWorker(ns: NS, keep?: boolean) {
       if (found) {
         ns.print('Working for ' + company + ' to improve stock');
         while (company && st.getPosition(sym)[0] == currPos) {
-          ns.setTitle('Stock Work: ' + company + ' : ' + ns.formatPercent(st.getForecast(sym)));
+          const title = 'Stock Work: ' + company;
+          if (st.has4SDataTIXAPI()) {
+            title.concat(' : ' + ns.formatPercent(st.getForecast(sym)));
+          }
+          ns.setTitle(title);
           await ns.sleep(waitTime);
           sin.applyToCompany(company, 'Software');
         }
         sin.stopAction();
       } else {
+        await factionWork(ns, ns.getPlayer().factions.sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
         await st.nextUpdate();
       }
     }
