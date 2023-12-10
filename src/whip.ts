@@ -21,6 +21,8 @@ export async function main(ns: NS) {
   const flags = ns.flags(argsSchema);
   if (flags.k) {
     keep = true;
+  } else {
+    keep = false;
   }
   ns.tail();
   ns.disableLog('ALL');

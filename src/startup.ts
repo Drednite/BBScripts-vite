@@ -10,9 +10,11 @@ export async function main(ns: NS) {
   ];
   if (mults.ScriptHackMoneyGain > 0 && Date.now() - ns.getResetInfo().lastAugReset < 1.8e6) {
     startList.push('whip.js');
+  } else if (Date.now() - ns.getResetInfo().lastAugReset < 1.8e6) {
+    startList.push(['whip.js', '-k']);
   }
   const augments = ns.singularity.getOwnedAugmentations();
-  const worker = ['worker.js', '--graft'];
+  const worker = ['worker.js'];
   const sleeve = ['dev/sleeve.js'];
   if (mults.GangSoftcap > 0) {
     worker.push('-g');
@@ -22,7 +24,7 @@ export async function main(ns: NS) {
   if (mults.CompanyWorkMoney > 0) {
     worker.push('-e');
   }
-  if (ns.stock.hasWSEAccount()) {
+  if (ns.stock.hasWSEAccount() && ns.stock.has4SDataTIXAPI()) {
     startList.push('dev/stonks.js');
     startList.push('stockReporter.js');
     worker.push('-s');

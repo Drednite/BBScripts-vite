@@ -1,7 +1,7 @@
 import { AutocompleteData, NS } from '@ns';
 import { Color, colorPicker } from './helpers';
 
-const argsSchema: [string, string | number | boolean | string[]][] = [['width', 90]];
+const argsSchema: [string, string | number | boolean | string[]][] = [['width', 45]];
 const arrows = [
   colorPicker('⟱', Color.magenta),
   colorPicker('⤋', Color.magenta),

@@ -1,5 +1,4 @@
 import { AutocompleteData, NS } from '@ns';
-import { CompanyName, orgStock } from './helpers';
 
 export function autocomplete(data: AutocompleteData) {
   return [...data.servers];
