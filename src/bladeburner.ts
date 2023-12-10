@@ -344,7 +344,7 @@ export async function main(ns: NS): Promise<void> {
       let price = Number.MAX_SAFE_INTEGER;
       if (!sin.getOwnedAugmentations(true).includes("The Blade's Simulacrum")) {
         try {
-          price = ns.grafting.getAugmentationGraftPrice("The Blade's Simulacrum");
+          price = ns.grafting.getAugmentationGraftPrice("The Blade's Simulacrum") + 200000;
         } catch {
           price = Number.MAX_SAFE_INTEGER;
         }
