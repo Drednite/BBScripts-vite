@@ -104,6 +104,22 @@ export async function main(ns: NS) {
         }
         ns.printf('Stock 4S: %g', st.getForecast(org));
       }
+    } else if (st.hasTIXAPIAccess()) {
+      const org = orgStock.get(target.organizationName);
+      if (org) {
+        if (st.getPosition(org)[0] > 0) {
+          hackScript = 'hack.js';
+          growScript = 'growst.js';
+          ns.printf('Building: %s', org);
+        } else if (st.getPosition(org)[2] > 0) {
+          hackScript = 'hackst.js';
+          growScript = 'grow.js';
+          ns.printf('Shorting: %s', org);
+        } else {
+          hackScript = 'hack.js';
+          growScript = 'grow.js';
+        }
+      }
     }
     target = ns.getServer(target.hostname);
     serverToHackFrom = ns.getServer(serverToHackFrom.hostname);
