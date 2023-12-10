@@ -1,16 +1,21 @@
 import { DefaultStyle, PrintTable } from './tables';
 
+export function autocomplete() {
+  return ['sell'];
+}
+
 let getTail;
 const width = 900;
 const height = 1000;
 let g_tixMode = false; // Global variable indicating if we have full 4S data or not (it is automatically
 // set/determined later in script no point changing the value here)
-let SHORTS = false; // Global to determine whether or not we have access to shorts (this is updated at the start of the script)
-let reserve = 0;
+let SHORTS; // Global to determine whether or not we have access to shorts (this is updated at the start of the script)
+const min_reserve = 1_000_000_000;
+let reserve = min_reserve;
 
-const LOG_SIZE = 15; // How many prices we keep in the log for blind/pre-4S trading for each symbol
+const LOG_SIZE = 10; // How many prices we keep in the log for blind/pre-4S trading for each symbol
 const BUY_TRIGGER = 0.1; // deviation from 0.5 (neutral) from which we start buying
-const SELL_TRIGGER = 0; // deviation from 0.5 (neutral) from which we start selling
+const SELL_TRIGGER = 0.01; // deviation from 0.5 (neutral) from which we start selling
 const TRANSACTION_COST = 100_000; // Cost of a stock transaction
 const MIN_TRANSACTION_SIZE = 5_000_000; // Minimum amount of stocks to buy, we need this to keep the transaction cost in check
 const TIME_TRACKING = false; // True if we're benchmarking our performance
@@ -25,7 +30,7 @@ const BENCH_TIME = 1000 * 60 * 60; // How long we wait before reporting profitab
 /** @param {NS} ns **/
 export async function main(ns) {
   ns.disableLog('ALL');
-  getTail = true;
+  getTail = false;
   let initialFunds = ns.getServerMoneyAvailable('home');
 
   // This code determines if we have access to shorts or not
@@ -38,6 +43,7 @@ export async function main(ns) {
     ns.print('INFO: Shorts activated!');
     ns.tprint('INFO: Shorts activated!');
   } catch {
+    SHORTS = false;
     ns.print('WARN: Shorts are not available to you yet, disabling them.');
     ns.tprint('WARN: Shorts are not available to you yet, disabling them.');
   }
@@ -65,7 +71,7 @@ export async function main(ns) {
     // Passing sell to the script sells all the stocks and kills any other running scripts, then exists
     let procs = ns.ps();
     for (let proc of procs) {
-      if (proc.filename == 'stonks.js' && proc.args.length == 0) {
+      if (proc.filename == ns.getScriptName() && proc.args.length == 0) {
         ns.tprint('WARN: Killing stonks.js!');
         ns.kill(proc.pid);
         break;
@@ -130,7 +136,7 @@ export async function main(ns) {
     ReportCurrentSnapshot(ns, longs);
 
     // 1 second ticks, we don't have any special treatment for bonus time
-    await ns.sleep(1000);
+    await ns.stock.nextUpdate();
   }
 }
 
@@ -160,7 +166,7 @@ function SellStonks(ns, log, dump) {
     }
 
     const date = new Date();
-    ns.tprint(
+    ns.print(
       'WARN: Selling ' +
         ns.formatNumber(stonk.nbShares) +
         ' LONG shares of ' +
@@ -218,7 +224,7 @@ function SellStonks(ns, log, dump) {
       }
 
       const date = new Date();
-      ns.tprint(
+      ns.print(
         'WARN: Selling ' +
           ns.formatNumber(stonk.nbShorts) +
           ' SHORT shares of ' +
@@ -301,7 +307,7 @@ function BuyStonks(ns, log) {
 
     // Buy some stocks!
     const date = new Date();
-    ns.tprint(
+    ns.print(
       'INFO: Buying ' +
         ns.formatNumber(maxShares) +
         ' ' +
@@ -340,17 +346,16 @@ function TakeSnapshot(ns, stonks) {
 }
 
 function ForecastToGraph(forecast) {
-  if (forecast >= 1) return { color: '#00FF00', text: '+++++' };
-  if (forecast >= 0.9) return { color: '#00EE00', text: '++++' };
-  if (forecast >= 0.8) return { color: '#00DD00', text: '+++' };
-  if (forecast >= 0.7) return { color: '#00CC00', text: '+++' };
-  if (forecast >= 0.65) return { color: '#00BB00', text: '++' };
-  if (forecast >= 0.6) return { color: '#00AA00', text: '+' };
-  if (forecast >= 0.55) return { color: '#800000', text: '' };
+  if (forecast >= 0.9) return { color: '#00FF00', text: '+++++' };
+  if (forecast >= 0.8) return { color: '#00EE00', text: '++++' };
+  if (forecast >= 0.7) return { color: '#00DD00', text: '+++' };
+  if (forecast >= 0.65) return { color: '#00CC00', text: '+++' };
+  if (forecast >= 0.6) return { color: '#00BB00', text: '++' };
+  if (forecast >= 0.55) return { color: '#00AA00', text: '+' };
 
   if (forecast >= 0.5) return { color: 'yellow', text: '' };
 
-  if (forecast >= 0.45) return { color: '#800000', text: '' };
+  // if (forecast >= 0.45) return { color: '#800000', text: '' };
   if (forecast >= 0.4) return { color: '#00AA00', text: '-' };
   if (forecast >= 0.35) return { color: '#00BB00', text: '--' };
   if (forecast >= 0.3) return { color: '#00CC00', text: '---' };
@@ -434,7 +439,7 @@ function ReportCurrentSnapshot(ns, stonks) {
   PrintTable(ns, data, columns, DefaultStyle(), ns.print);
 
   let totalWorth = total.paid + total.profit + ns.getServerMoneyAvailable('home');
-  reserve = totalWorth * 0.001;
+  reserve = Math.max(totalWorth * 0.001, min_reserve);
   // ns.print('Reserve: ' + ns.formatNumber(reserve));
   UpdateHud(ns, totalWorth);
 
@@ -518,12 +523,18 @@ export class Stonk {
         let prev = this.snapshots[i - 1];
         let cur = this.snapshots[i];
 
-        if (prev < cur) nbUp++;
+        if (prev < cur) {
+          nbUp++;
+          if (i > this.snapshots.length / 2) {
+            // weigh the most recent changes more heavily
+            nbUp++;
+          }
+        }
       }
 
       // We simulate a forecast based on the last LOG_SIZE operations
       if (this.snapshots.length == LOG_SIZE)
-        this.forecast = nbUp / (LOG_SIZE - 1); // -1 here because with 15 values, we only have 14 changes
+        this.forecast = nbUp / (LOG_SIZE * 1.5 - 1); // -1 here because with 15 values, we only have 14 changes
       else this.forecast = 'N/A';
     }
 
