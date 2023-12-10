@@ -49,12 +49,7 @@ export async function main(ns: NS): Promise<void> {
   }
   availableAugments.sort((a, b) => sin.getAugmentationBasePrice(b) - sin.getAugmentationBasePrice(a));
 
-  // ns.tail();
-  // availableAugments.forEach((aug) => {
-  //   ns.print(aug + ": " + ns.formatNumber(sin.getAugmentationBasePrice(aug)));
-  // })
-  // if (ns.isRunning('stockTrader5.js')) {
-  ns.kill('stockTrader5.js');
+  ns.kill('dev/stonks.js');
   const book = ns.stock.getSymbols();
   for (const symb in book) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -72,7 +67,6 @@ export async function main(ns: NS): Promise<void> {
       ns.toast(message, 'success');
     }
   }
-  // }
 
   ns.hacknet.spendHashes('Sell for Money', undefined, ns.hacknet.numHashes() / 4);
   for (const aug of availableAugments) {
