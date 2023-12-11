@@ -4,11 +4,16 @@ import { NS } from '@ns';
 export async function main(ns: NS) {
   while (true) {
     ns.disableLog('ALL');
-    while (!ns.run('contractor.js')) {
-      ns.disableLog('sleep');
-      await ns.sleep(10000);
+    const player = ns.getPlayer();
+    if (Object.values(player.jobs).length || player.factions.length > 0) {
+      ns.print('Looking for contracts for rep');
+      while (!ns.run('contractor.js')) {
+        ns.disableLog('sleep');
+        await ns.sleep(1000);
+      }
     }
-    ns.enableLog('sleep');
+    const time = new Date();
+    ns.printf('[%2d:%2d:%2d]', time.getHours, time.getMinutes, time.getSeconds);
     await ns.sleep(600000);
   }
 }

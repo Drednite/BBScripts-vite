@@ -6,6 +6,6 @@ export function autocomplete(data: AutocompleteData) {
 
 export async function main(ns: NS): Promise<void> {
   ns.tail();
-
-  ns.print(ns.singularity.getCurrentWork());
+  const player = ns.getPlayer();
+  ns.print(Object.values(player.jobs).length ? 'true' : 'false');
 }
