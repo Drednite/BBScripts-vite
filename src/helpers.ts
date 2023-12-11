@@ -460,15 +460,15 @@ export async function upgradeHashCapacity(ns: NS, cost: number) {
     }
     if (net.getNodeStats(targetCache).cache == 15 && net.numNodes() < net.maxNumNodes()) {
       ns.print('Purchasing new node...');
-      while (net.getPurchaseNodeCost() > ns.getServerMoneyAvailable('home')) {
-        await ns.sleep(1000);
+      if (net.getPurchaseNodeCost() > ns.getServerMoneyAvailable('home')) {
+        return false;
       }
       net.purchaseNode();
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     } else if (net.getNodeStats(targetCache).cache! < 15) {
       ns.print('Upgrading hash cache ' + targetCache);
-      while (net.getCacheUpgradeCost(targetCache) > ns.getServerMoneyAvailable('home')) {
-        await ns.sleep(1000);
+      if (net.getCacheUpgradeCost(targetCache) > ns.getServerMoneyAvailable('home')) {
+        return false;
       }
       net.upgradeCache(targetCache);
     }
