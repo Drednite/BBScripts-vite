@@ -8,14 +8,18 @@ export async function main(ns: NS) {
   const startList: (string | string[])[] = [
     ['crawler.js', '--daemon', '--share', '-o']
   ];
+  const augments = ns.singularity.getOwnedAugmentations();
+  const worker = ['worker.js'];
+  const sleeve = ['dev/sleeve.js'];
   if (mults.ScriptHackMoneyGain > 0 && Date.now() - ns.getResetInfo().lastAugReset < 1.8e6) {
     startList.push('whip.js');
   } else if (Date.now() - ns.getResetInfo().lastAugReset < 1.8e6) {
     startList.push(['whip.js', '-k']);
+  } else if (ns.stock.hasWSEAccount() && ns.stock.has4SDataTIXAPI()) {
+    startList.push('dev/stonks.js');
+    startList.push('stockReporter.js');
+    worker.push('-s');
   }
-  const augments = ns.singularity.getOwnedAugmentations();
-  const worker = ['worker.js'];
-  const sleeve = ['dev/sleeve.js'];
   if (mults.GangSoftcap > 0) {
     worker.push('-g');
   } else {
@@ -23,11 +27,6 @@ export async function main(ns: NS) {
   }
   if (mults.CompanyWorkMoney > 0) {
     worker.push('-e');
-  }
-  if (ns.stock.hasWSEAccount() && ns.stock.has4SDataTIXAPI()) {
-    startList.push('dev/stonks.js');
-    startList.push('stockReporter.js');
-    worker.push('-s');
   }
   if (mults.BladeburnerRank > 0) {
     if (ns.bladeburner.inBladeburner()) {

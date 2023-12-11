@@ -101,6 +101,14 @@ export async function main(ns: NS) {
         // await upgradeHacknet(ns, upgradeCost);
         while (upgradeCost * costMult > ns.getServerMoneyAvailable('home')) {
           if (!keep && Date.now() - ns.getResetInfo().lastAugReset > 1.8e6) {
+            if (ns.stock.has4SDataTIXAPI()) {
+              while (!ns.run('dev/stonks.js')) {
+                await ns.sleep(1000);
+              }
+              while (!ns.run('stockReporter.js')) {
+                await ns.sleep(1000);
+              }
+            }
             ns.exit();
           }
           await ns.sleep(waitTime);
@@ -128,6 +136,14 @@ export async function main(ns: NS) {
  */
 export async function upgradeHome(ns: NS, cost: number): Promise<void> {
   if (!keep && Date.now() - ns.getResetInfo().lastAugReset > 1.8e6) {
+    if (ns.stock.has4SDataTIXAPI()) {
+      while (!ns.run('dev/stonks.js')) {
+        await ns.sleep(1000);
+      }
+      while (!ns.run('stockReporter.js')) {
+        await ns.sleep(1000);
+      }
+    }
     ns.exit();
   }
   const home = ns.getServer('home');
