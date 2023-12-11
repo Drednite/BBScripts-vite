@@ -1,5 +1,5 @@
 import { NS, ScriptArg } from '@ns';
-import { getAllServers, getKeys } from './helpers';
+import { getAllServers, getKeys, orgStock } from './helpers';
 
 let powerlessServers: string[] = [];
 
@@ -31,6 +31,9 @@ export async function main(ns: NS) {
   ns.print('Target list: \n>>> n00dles');
   for (let i = 0; i < serverList.length; i++) {
     if (ns.getServerMaxMoney(serverList[i]) > ns.getServerMaxMoney(targetList[targetList.length - 1])) {
+      ns.print('>>> ' + serverList[i]);
+      targetList.push(serverList[i]);
+    } else if (ns.stock.hasTIXAPIAccess() && orgStock.get(ns.getServer(serverList[i]).organizationName)) {
       ns.print('>>> ' + serverList[i]);
       targetList.push(serverList[i]);
     }
@@ -97,7 +100,7 @@ export async function attack(ns: NS, target: string, next: string): Promise<true
     for (let i = 0; i < powerlessServers.length; i++) {
       ns.scriptKill('share.js', powerlessServers[i]);
       ns.scriptKill('autoHack.js', powerlessServers[i]);
-      if (ns.getServerMaxRam(powerlessServers[i]) - ns.getServerUsedRam(powerlessServers[i]) > 4) {
+      if (ns.getServerMaxRam(powerlessServers[i]) > 4) {
         tasks.push(ns.run('masterHack.js', { temporary: true }, target, powerlessServers[i]));
         await ns.sleep(delayTime);
       }
