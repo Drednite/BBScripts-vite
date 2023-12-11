@@ -22,7 +22,7 @@ export async function main(ns: NS) {
   ns.tail();
   ns.disableLog('ALL');
   ns.clearLog();
-  ns.moveTail(1605, 35);
+  ns.moveTail(1605, 0);
   ns.atExit(() => {
     ns.closeTail();
   });
@@ -166,7 +166,7 @@ export async function main(ns: NS) {
   ///////////////////////////////////////////////////////////////////////////////////////////
   while (true) {
     ns.setTitle(corp.getCorporation().name + ' State: ' + state);
-    ns.resizeTail(300, 110); //resizeTail() is used to refresh the tail window faster than normal
+    ns.resizeTail(300, 300); //resizeTail() is used to refresh the tail window faster than normal
     ns.clearLog();
     ns.print(corp.getCorporation().name + ' State: ' + state);
     tendToWorkers();

@@ -1,7 +1,7 @@
 import { AutocompleteData, NS } from '@ns';
 import { Color, colorPicker } from './helpers';
 
-const argsSchema: [string, string | number | boolean | string[]][] = [['width', 45]];
+const argsSchema: [string, string | number | boolean | string[]][] = [['width', 35]];
 const arrows = [
   colorPicker('⟱', Color.magenta),
   colorPicker('⤋', Color.magenta),
@@ -105,6 +105,7 @@ export async function main(ns: NS) {
   const height = columnSize * 24 + 62;
   await st.nextUpdate();
   ns.tail();
+  ns.moveTail(1605, 35);
   ns.setTitle(ns.getScriptName());
   while (true) {
     ns.resizeTail(width, height);
