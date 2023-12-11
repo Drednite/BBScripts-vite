@@ -13,7 +13,8 @@ let SHORTS; // Global to determine whether or not we have access to shorts (this
 const min_reserve = 1_000_000_000;
 let reserve = min_reserve;
 
-const LOG_SIZE = 10; // How many prices we keep in the log for blind/pre-4S trading for each symbol
+const LOG_SIZE = 15; // How many prices we keep in the log for blind/pre-4S trading for each symbol
+const BIAS = 5; // How many of the most recent changes should be more heavily weighted
 const BUY_TRIGGER = 0.1; // deviation from 0.5 (neutral) from which we start buying
 const SELL_TRIGGER = 0.01; // deviation from 0.5 (neutral) from which we start selling
 const TRANSACTION_COST = 100_000; // Cost of a stock transaction
@@ -382,6 +383,7 @@ function ReportCurrentSnapshot(ns, stonks) {
   const data = [];
 
   const sum = [0, 0, 0, 0];
+  let foreDiff = 0;
 
   for (const stonk of stonks) {
     total.nbShares += stonk.nbShares;
@@ -390,6 +392,7 @@ function ReportCurrentSnapshot(ns, stonks) {
     total.profit += stonk.GetProfit();
 
     let forecast = stonk.forecast == 'N/A' ? stonk.forecast : stonk.forecast.toFixed(4);
+    foreDiff += forecast - stonk.calcForecast;
 
     let line = [];
 
@@ -417,6 +420,12 @@ function ReportCurrentSnapshot(ns, stonks) {
     data.push(line);
   }
 
+  foreDiff /= stonks.length;
+  if (stonks[0].snapshots.length < LOG_SIZE) {
+    ns.printf('Filling logs: %d/%d', stonks[0].snapshots.length, LOG_SIZE);
+  } else {
+    ns.printf('Average FDiff: %3g', foreDiff);
+  }
   data.push(null);
 
   let pct = (sum[3] / sum[2]) * 100;
@@ -513,29 +522,31 @@ export class Stonk {
       this.snapshots.shift();
     }
 
+    // Recound the ups and downs for pre-4S forecast estimation
+    let nbUp = 0;
+    for (let i = 1; i < this.snapshots.length; i++) {
+      let prev = this.snapshots[i - 1];
+      let cur = this.snapshots[i];
+
+      if (prev < cur) {
+        nbUp++;
+        if (i > LOG_SIZE - BIAS) {
+          // weigh the most recent changes more heavily
+          nbUp++;
+        }
+      }
+    }
+
+    // We simulate a forecast based on the last LOG_SIZE operations
+    // if (this.snapshots.length == LOG_SIZE)
+    this.calcForecast = nbUp / (LOG_SIZE + BIAS - 1); // -1 here because with 15 values, we only have 14 changes
+    // else calcForecast = 'N/A';
+
     // Get volatility and forecast if available
     if (g_tixMode) {
       this.forecast = this.ns.stock.getForecast(this.sym);
     } else {
-      // Recound the ups and downs for pre-4S forecast estimation
-      let nbUp = 0;
-      for (let i = 1; i < this.snapshots.length; i++) {
-        let prev = this.snapshots[i - 1];
-        let cur = this.snapshots[i];
-
-        if (prev < cur) {
-          nbUp++;
-          if (i > this.snapshots.length / 2) {
-            // weigh the most recent changes more heavily
-            nbUp++;
-          }
-        }
-      }
-
-      // We simulate a forecast based on the last LOG_SIZE operations
-      if (this.snapshots.length == LOG_SIZE)
-        this.forecast = nbUp / (LOG_SIZE * 1.5 - 1); // -1 here because with 15 values, we only have 14 changes
-      else this.forecast = 'N/A';
+      this.forecast = this.calcForecast;
     }
 
     if (this.forecast != 'N/A') {
