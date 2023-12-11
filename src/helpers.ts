@@ -444,9 +444,15 @@ export function parseFormattedNumber(input: string): number {
   return parseInt(eval(input), 10);
 }
 
-export async function upgradeHashCapacity(ns: NS, cost: number) {
+/**
+ * Attempts to purchase most efficient hash capcity upgrade with money on hand.
+ * @param ns netscript namespace
+ * @param target desired hash capacity
+ * @returns true if target is reached, false otherwise
+ */
+export async function upgradeHashCapacity(ns: NS, target: number) {
   const net = ns.hacknet;
-  while (cost > net.hashCapacity()) {
+  while (target > net.hashCapacity()) {
     let targetCache = 0;
     let bestValue = 0;
     const numNodes = net.numNodes();
@@ -503,6 +509,10 @@ export function getSkill(ns: NS, skill: string): number {
   }
 }
 
+/**
+ * @param ns netscript namespace
+ * @returns [strength, defense, dexterity, agility] array containing the player's combat stats
+ */
 export function getCombatStats(ns: NS) {
   const player = ns.getPlayer();
   return [player.skills.strength, player.skills.defense, player.skills.dexterity, player.skills.agility];
