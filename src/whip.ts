@@ -25,6 +25,8 @@ export async function main(ns: NS) {
     keep = false;
   }
   ns.tail();
+  const pid = ns.getRunningScript()?.pid;
+  ns.writePort(1, pid ? pid : ns.getScriptName());
   ns.disableLog('ALL');
   const waitTime = typeof flags.waitTime == 'number' ? flags.waitTime : 1000;
   const owned = ns.getPurchasedServers();
@@ -34,9 +36,6 @@ export async function main(ns: NS) {
   let upgradeCost;
   ns.moveTail(0, 0);
   ns.resizeTail(250, 300);
-  ns.atExit(() => {
-    ns.closeTail();
-  });
   ns.print('Getting Dark Web access...');
   while (!ns.singularity.purchaseTor()) {
     await ns.sleep(waitTime);

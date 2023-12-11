@@ -11,6 +11,8 @@ export async function main(ns: NS): Promise<void> {
 
   ns.disableLog('ALL');
   ns.tail();
+  const pid = ns.getRunningScript()?.pid;
+  ns.writePort(1, pid ? pid : ns.getScriptName());
   ns.resizeTail(385, 340);
   ns.moveTail(765, 35);
 

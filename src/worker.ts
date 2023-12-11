@@ -101,11 +101,10 @@ export async function main(ns: NS): Promise<void> {
   stocks = flags.s != false;
   focus = !sin.getOwnedAugmentations().includes('Neuroreceptor Management Implant');
   ns.tail();
+  const pid = ns.getRunningScript()?.pid;
+  ns.writePort(1, pid ? pid : ns.getScriptName());
   ns.resizeTail(545, 300);
   ns.moveTail(765, 0);
-  ns.atExit(() => {
-    ns.closeTail();
-  });
   while (sin.getCurrentWork() && sin.getCurrentWork().type == 'GRAFTING') {
     ns.setTitle('Worker: Finishing up graft...');
     await ns.sleep(waitTime);

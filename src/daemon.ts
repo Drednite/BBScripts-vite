@@ -6,6 +6,8 @@ let powerlessServers: string[] = [];
 /** @param {NS} ns */
 export async function main(ns: NS) {
   ns.tail();
+  const pid = ns.getRunningScript()?.pid;
+  ns.writePort(1, pid ? pid : ns.getScriptName());
   ns.disableLog('ALL');
   const serverList = await getAllServers(ns);
   powerlessServers = [];
@@ -14,9 +16,6 @@ export async function main(ns: NS) {
   const host = ns.getHostname();
   const mark = 'mark.txt';
   let leaveSub: ScriptArg = true;
-  ns.atExit(() => {
-    ns.closeTail();
-  });
   if (ns.args.length == 1) {
     leaveSub = ns.args[0];
   }

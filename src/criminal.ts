@@ -5,9 +5,8 @@ export async function main(ns: NS) {
   const sin = ns.singularity;
   const focus = !sin.getOwnedAugmentations().includes('Neuroreceptor Management Implant');
   ns.tail();
-  ns.atExit(() => {
-    ns.closeTail();
-  });
+  const pid = ns.getRunningScript()?.pid;
+  ns.writePort(1, pid ? pid : ns.getScriptName());
   sin.commitCrime('Mug', focus);
   while (sin.getCrimeChance('Homicide') < 0.6) {
     await ns.sleep(10000);

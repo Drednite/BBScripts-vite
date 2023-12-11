@@ -44,6 +44,8 @@ export async function main(ns: NS) {
     return !(purchased.includes(server) || server.includes('hacknet-server'));
   });
   ns.tail();
+  const pid = ns.getRunningScript()?.pid;
+  ns.writePort(1, pid ? pid : ns.getScriptName());
   ns.moveTail(250, 0);
 
   // serverList = serverList.filter((server) => !owned.includes(server));

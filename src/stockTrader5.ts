@@ -9,6 +9,8 @@ export async function main(ns: NS) {
   // Logging
   ns.disableLog('ALL');
   ns.tail();
+  const pid = ns.getRunningScript()?.pid;
+  ns.writePort(1, pid ? pid : ns.getScriptName());
   ns.moveTail(1605, 0);
   ns.resizeTail(315, 540);
 

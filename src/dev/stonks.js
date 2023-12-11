@@ -89,6 +89,8 @@ export async function main(ns) {
     ns.resizeTail(width, height);
     if (getTail) {
       ns.tail();
+      const pid = ns.getRunningScript()?.pid;
+      ns.writePort(1, pid ? pid : ns.getScriptName());
       getTail = false;
     }
     ns.clearLog();

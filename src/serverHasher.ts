@@ -11,6 +11,8 @@ export async function main(ns: NS): Promise<void> {
   ns.disableLog('ALL');
   ns.enableLog('hacknet.spendHashes');
   ns.tail();
+  const pid = ns.getRunningScript()?.pid;
+  ns.writePort(1, pid ? pid : ns.getScriptName());
   ns.moveTail(250, 0);
   ns.resizeTail(515, 300);
 

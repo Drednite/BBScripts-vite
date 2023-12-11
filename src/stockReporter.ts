@@ -105,6 +105,8 @@ export async function main(ns: NS) {
   const height = columnSize * 24 + 62;
   await st.nextUpdate();
   ns.tail();
+  const pid = ns.getRunningScript()?.pid;
+  ns.writePort(1, pid ? pid : ns.getScriptName());
   ns.moveTail(1605, 35);
   ns.setTitle(ns.getScriptName());
   while (true) {

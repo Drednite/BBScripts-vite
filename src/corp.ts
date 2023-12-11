@@ -20,12 +20,11 @@ export async function main(ns: NS) {
    * or two of some of the employee upgrades. Maybe fix it later.
    */
   ns.tail();
+  const pid = ns.getRunningScript()?.pid;
+  ns.writePort(1, pid ? pid : ns.getScriptName());
   ns.disableLog('ALL');
   ns.clearLog();
   ns.moveTail(1605, 0);
-  ns.atExit(() => {
-    ns.closeTail();
-  });
   const corp = _getCorp();
   const agri = 'agri';
   const chem = 'chem';

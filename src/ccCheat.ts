@@ -3,11 +3,10 @@ import { upgradeHashCapacity } from './helpers';
 
 export async function main(ns: NS): Promise<void> {
   ns.tail();
+  const pid = ns.getRunningScript()?.pid;
+  ns.writePort(1, pid ? pid : ns.getScriptName());
   ns.resizeTail(295, 300);
   ns.moveTail(1310, 0);
-  ns.atExit(() => {
-    ns.closeTail();
-  });
   ns.disableLog('ALL');
   const delayTime = 1000;
   const ccToBuy = Number.EPSILON;
@@ -19,7 +18,7 @@ export async function main(ns: NS): Promise<void> {
     if (ns.hacknet.hashCost('Generate Coding Contract') * ccToBuy > ns.hacknet.hashCapacity()) {
       await upgradeHashCapacity(ns, ns.hacknet.hashCost('Generate Coding Contract') * ccToBuy);
     }
-    ns.print('Generating Coding Constract...');
+    ns.print('Generating Coding Contract...');
     while (!ns.hacknet.spendHashes('Generate Coding Contract', undefined, ccToBuy)) {
       await ns.sleep(delayTime);
     }

@@ -22,13 +22,12 @@ export async function main(ns: NS) {
   const flags = ns.flags(argsSchema);
   ns.disableLog('ALL');
   ns.tail();
+  const pid = ns.getRunningScript()?.pid;
+  ns.writePort(1, pid ? pid : ns.getScriptName());
   ns.resizeTail(295, 300);
   ns.moveTail(1310, 0);
   ccToBuy = flags.ccCheat ? Number.EPSILON : 1;
   constantCont = flags.ccCheat ? true : false;
-  ns.atExit(() => {
-    ns.closeTail();
-  });
   if (flags.ccCheat) {
     ns.atExit(async () => {
       ns.closeTail();
