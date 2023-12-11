@@ -13,8 +13,13 @@ export async function main(ns: NS) {
   const sleeve = ['dev/sleeve.js'];
   if (mults.ScriptHackMoneyGain > 0 && Date.now() - ns.getResetInfo().lastAugReset < 1.8e6) {
     startList.push('whip.js');
-  } else if (Date.now() - ns.getResetInfo().lastAugReset < 1.8e6) {
+  } else if (mults.ScriptHackMoney > 0 && Date.now() - ns.getResetInfo().lastAugReset < 1.8e6) {
     startList.push(['whip.js', '-k']);
+    if (ns.stock.hasWSEAccount() && ns.stock.has4SDataTIXAPI()) {
+      startList.push('dev/stonks.js');
+      startList.push('stockReporter.js');
+      worker.push('-s');
+    }
   } else if (ns.stock.hasWSEAccount() && ns.stock.has4SDataTIXAPI()) {
     startList.push('dev/stonks.js');
     startList.push('stockReporter.js');
@@ -44,9 +49,13 @@ export async function main(ns: NS) {
   }
 
   if (mults.HacknetNodeMoney > 0) {
-    let hacknet: string | string[] = ['hacknet.js', '--ccCheat'];
-    if (Date.now() - ns.getResetInfo().lastAugReset > 1.8e6 && ns.hacknet.numNodes() > 0) {
-      hacknet = 'ccCheat.js';
+    let hacknet: string | string[] = ['hacknet.js'];
+    if (mults.CodingContractMoney > 0) {
+      if (Date.now() - ns.getResetInfo().lastAugReset > 1.8e6 && ns.hacknet.numNodes() > 0) {
+        hacknet = 'ccCheat.js';
+      } else {
+        hacknet.push('--ccCheat');
+      }
     }
     startList.push(hacknet);
   } else {
