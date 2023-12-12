@@ -1,7 +1,7 @@
 import { AutocompleteData, NS } from '@ns';
 import { Color, colorPicker } from './helpers';
 
-const argsSchema: [string, string | number | boolean | string[]][] = [['width', 35]];
+const argsSchema: [string, string | number | boolean | string[]][] = [['width', 36]];
 const arrows = [
   colorPicker('⟱', Color.magenta),
   colorPicker('⤋', Color.magenta),
@@ -23,14 +23,19 @@ export function autocomplete(data: AutocompleteData) {
 export async function main(ns: NS) {
   const flags = ns.flags(argsSchema);
   const st = ns.stock;
-  if (!st.hasWSEAccount && !st.hasTIXAPIAccess) {
-    ns.tprint('ERROR: Needs WSE Account and TIX API Access');
-    ns.exit();
+  ns.disableLog('ALL');
+  while (!st.purchaseWseAccount()) {
+    ns.print('Purchasing WSE Account...');
+    await ns.sleep(1000);
+    ns.clearLog();
   }
-  let has4S = false;
-  if (st.has4SDataTIXAPI()) {
-    has4S = true;
+  while (!st.purchaseTixApi()) {
+    ns.print('Purchasing TIX API Access...');
+    await ns.sleep(1000);
+    ns.clearLog();
   }
+  let has4S = st.has4SDataTIXAPI();
+
   const dataFile = 'data/stocks.txt';
   const stocks: Stock[] = [];
   const legend =
@@ -43,6 +48,7 @@ export async function main(ns: NS) {
     '|\n|Loss:   ' +
     colorPicker('▓░', Color.red) +
     '|';
+
   class Stock {
     name: string;
     highestPrice: number;
@@ -96,6 +102,14 @@ export async function main(ns: NS) {
       stocks.push(new Stock(sym));
     }
   }
+  stocks.sort((a, b) => {
+    return (
+      a.name.charCodeAt(0) * 100 -
+      b.name.charCodeAt(0) * 100 +
+      (a.name.charCodeAt(1) * 10 - b.name.charCodeAt(1) * 10) +
+      (a.name.charCodeAt(3) - b.name.charCodeAt(3))
+    );
+  });
   let rowSize = 34;
   if (typeof flags.width == 'number') {
     rowSize = Math.max(flags.width, 34);
@@ -109,13 +123,15 @@ export async function main(ns: NS) {
   ns.writePort(1, pid ? pid : ns.getScriptName());
   ns.moveTail(1605, 35);
   ns.setTitle(ns.getScriptName());
+
+  // MAIN LOOP //
   while (true) {
     ns.resizeTail(width, height);
     ns.clearLog();
     ns.printf("┌%'─10s┐", '');
     ns.print(legend);
     ns.printf("└%'─10s┘", '');
-    ns.printf("┌%'─6s─┬─Lowest%'─" + (rowSize - 18) + 's┐', 'Stock', 'Highest');
+    ns.printf("┌%'─6s─┬─%'─-" + (rowSize - 12) + 's┐', 'Stock', 'Price');
     for (const stock of stocks) {
       let tend = '│';
       if (has4S) {
@@ -129,21 +145,17 @@ export async function main(ns: NS) {
         else if (forecast <= 0.65) tend = arrows[6];
         else if (forecast <= 0.7) tend = arrows[7];
         else tend = arrows[8];
+      } else if (st.purchase4SMarketDataTixApi()) {
+        ns.print('SUCCESS: 4S TIX API purchased');
+        has4S = true;
       }
       stock.Update();
       const perc = (stock.currentPrice - stock.lowestPrice) / (stock.highestPrice - stock.lowestPrice);
       const position =
         (Math.max(stock.currentPosition[1], stock.currentPosition[3]) - stock.lowestPrice) /
         (stock.highestPrice - stock.lowestPrice);
-      const bar = makeBar(rowSize - 32, perc, position, stock.currentPosition[3] > 0);
-      ns.printf(
-        '│ %5s | %8s %s %8s%s',
-        stock.name,
-        '$' + ns.formatNumber(stock.lowestPrice, 2),
-        '[' + bar + ']',
-        '$' + ns.formatNumber(stock.highestPrice, 2),
-        tend,
-      );
+      const bar = makeBar(rowSize - 24, perc, position, stock.currentPosition[3] > 0);
+      ns.printf('│ %5s | %8s %s %s', stock.name, '$' + ns.formatNumber(stock.currentPrice, 2), '[' + bar + ']', tend);
     }
     ns.printf("└%'─7s┴%'─-" + (rowSize - 11) + 's┘', '', '');
 
