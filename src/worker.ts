@@ -393,6 +393,7 @@ async function busStudent(ns: NS, target: number = Number.MAX_SAFE_INTEGER, scho
   while (player.city != universityCities.get(school)) {
     ns.singularity.travelToCity(universityCities.get(school)!);
     await ns.sleep(100);
+    player = ns.getPlayer();
   }
 
   ns.print('Studying ' + course + ' at ' + school);
