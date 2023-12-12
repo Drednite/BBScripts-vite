@@ -108,6 +108,7 @@ export async function main(ns: NS) {
                 await ns.sleep(1000);
               }
             }
+            ns.closeTail();
             ns.exit();
           }
           await ns.sleep(waitTime);
@@ -143,6 +144,7 @@ export async function upgradeHome(ns: NS, cost: number): Promise<void> {
         await ns.sleep(1000);
       }
     }
+    ns.closeTail();
     ns.exit();
   }
   const home = ns.getServer('home');

@@ -27,13 +27,27 @@ export async function main(ns: NS) {
   }
 
   const targetList = ['n00dles'];
-  ns.print('Target list: \n>>> n00dles');
+  ns.print('Target list: \n>>> [0] n00dles');
   for (let i = 0; i < serverList.length; i++) {
     if (ns.getServerMaxMoney(serverList[i]) > ns.getServerMaxMoney(targetList[targetList.length - 1])) {
-      ns.print('>>> ' + serverList[i]);
+      ns.print(
+        '>>> [' +
+          targetList.length +
+          '] ' +
+          serverList[i] +
+          ' Lvl: ' +
+          ns.getServerRequiredHackingLevel(serverList[i]) * 4,
+      );
       targetList.push(serverList[i]);
     } else if (ns.stock.hasTIXAPIAccess() && orgStock.get(ns.getServer(serverList[i]).organizationName)) {
-      ns.print('>>> ' + serverList[i]);
+      ns.print(
+        '>>> [' +
+          targetList.length +
+          '] ' +
+          serverList[i] +
+          ' Lvl: ' +
+          ns.getServerRequiredHackingLevel(serverList[i]) * 4,
+      );
       targetList.push(serverList[i]);
     }
   }

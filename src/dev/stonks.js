@@ -394,6 +394,9 @@ function ReportCurrentSnapshot(ns, stonks) {
     total.profit += stonk.GetProfit();
 
     let forecast = stonk.forecast == 'N/A' ? stonk.forecast : stonk.forecast.toFixed(4);
+    if (g_tixMode && stonk.snapshots.length == LOG_SIZE && (stonk.nbShares || stonk.nbShorts)) {
+      ns.printf('%s FDiff: %.4g', stonk.sym, forecast - stonk.calcForecast);
+    }
     foreDiff += forecast - stonk.calcForecast;
 
     let line = [];
@@ -423,10 +426,10 @@ function ReportCurrentSnapshot(ns, stonks) {
   }
 
   foreDiff /= stonks.length;
-  if (stonks[0].snapshots.length < LOG_SIZE) {
+  if (g_tixMode && stonks[0].snapshots.length < LOG_SIZE) {
     ns.printf('Filling logs: %d/%d', stonks[0].snapshots.length, LOG_SIZE);
-  } else {
-    ns.printf('Average FDiff: %3g', foreDiff);
+  } else if (g_tixMode) {
+    ns.printf('Average FDiff: %.3g', foreDiff);
   }
   data.push(null);
 

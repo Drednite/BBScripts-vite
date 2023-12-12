@@ -328,14 +328,7 @@ export async function main(ns: NS): Promise<void> {
     return false;
   }
 
-  // if already busy,
-  // if(bb.getActionCurrentTime() > 0){
-  //   const curr = bb.getCurrentAction()
-  //   ns.print("Finishing up " + curr.name);
-  //   const waitTime = adjTime(bb.getActionTime(curr.type, curr.name) - bb.getActionCurrentTime());
-  //   await ns.sleep(waitTime);
-  //   ns.clearLog();
-  // }
+  ns.print('Finishing up task...');
   await actWaiter();
   ns.clearLog();
   ns.printf("+%'=37s+", '');
