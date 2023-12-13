@@ -12,15 +12,16 @@ import {
   installBackdoor,
   getKeys,
   stockComp,
+  workableFactions,
 } from './helpers';
 
 const argsSchema: [string, string | number | boolean | string[]][] = [
-  ['g', false],
-  ['b', false],
-  ['e', false],
-  ['s', false],
-  ['stockEx', false],
-  ['graft', false],
+  ['g', false], // whether or not to prioritize forming a gang
+  ['b', false], // whether or not to train to join BladeBurner division
+  ['e', false], // whether or not to work for megacorps to join their factions
+  ['s', false], // whether or not to work for companies to improve their stock forecast
+  ['stockEx', false], // exclusivesly work for companies to improve their stock
+  ['graft', false], // graft augments
 ];
 
 const strength = 'strength';
@@ -248,7 +249,6 @@ async function employee(ns: NS) {
       sin.applyToCompany(megacorps[i], 'Software');
       check = manageInvites(ns, faction) && !player.factions.includes(faction); // update check
     }
-    sin.quitJob(megacorps[i]);
     const factAugs = availableAugments(ns, faction, false);
     let repReq = 0;
     factAugs.forEach((aug) => {
@@ -258,6 +258,7 @@ async function employee(ns: NS) {
       }
     });
     await factionWork(ns, faction, repReq);
+    sin.quitJob(megacorps[i]);
     ns.print('Working for ' + faction);
     while (sin.getFactionRep(faction) < repReq) {
       ns.setTitle(
@@ -655,11 +656,10 @@ async function endgame(ns: NS) {
       if (stocks) {
         manageInvites(ns);
         await stockWorker(ns);
-        await factionWork(ns, ns.getPlayer().factions.sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
       } else {
         manageInvites(ns);
         await ns.sleep(waitTime);
-        await factionWork(ns, ns.getPlayer().factions.sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
+        await factionWork(ns, workableFactions(ns).sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
       }
     }
     manageInvites(ns);
@@ -710,11 +710,10 @@ async function endgame(ns: NS) {
       if (stocks) {
         manageInvites(ns);
         await stockWorker(ns);
-        await factionWork(ns, ns.getPlayer().factions.sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
       } else {
         manageInvites(ns);
         await ns.sleep(waitTime);
-        await factionWork(ns, ns.getPlayer().factions.sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
+        await factionWork(ns, workableFactions(ns).sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
       }
     }
     manageInvites(ns);
@@ -774,11 +773,10 @@ async function endgame(ns: NS) {
         if (stocks) {
           manageInvites(ns);
           await stockWorker(ns);
-          await factionWork(ns, ns.getPlayer().factions.sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
         } else {
           manageInvites(ns);
           await ns.sleep(waitTime);
-          await factionWork(ns, ns.getPlayer().factions.sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
+          await factionWork(ns, workableFactions(ns).sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
         }
       }
       manageInvites(ns);
@@ -846,6 +844,10 @@ async function factionWork(ns: NS, faction: string, repTarget = 0) {
   const player = ns.getPlayer();
   if (!player.factions.includes(faction)) {
     return false;
+  }
+  const curr = sin.getCurrentWork();
+  if (curr && curr.type == 'FACTION' && curr.factionName == faction) {
+    return true;
   }
   if (repTarget > 0 && sin.getFactionRep(faction) > repTarget) {
     return true;
@@ -1022,9 +1024,11 @@ async function stockWorker(ns: NS, keep?: boolean) {
         }
         sin.stopAction();
       } else {
-        await factionWork(ns, ns.getPlayer().factions.sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
+        await factionWork(ns, workableFactions(ns).sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
         await st.nextUpdate();
       }
+    } else {
+      await factionWork(ns, workableFactions(ns).sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
     }
     await st.nextUpdate();
   } while (keep);

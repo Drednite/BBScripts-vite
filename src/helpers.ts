@@ -580,6 +580,22 @@ export function calculateStaminaGainPerSecond(ns: NS): number {
   return gain * (player.mults.bladeburner_max_stamina * player.mults.bladeburner_stamina_gain);
 }
 
+export function workableFactions(ns: NS) {
+  let facts = ns.getPlayer().factions;
+  if (ns.gang.inGang()) {
+    facts = facts.filter((fact) => fact != ns.gang.getGangInformation().faction);
+  }
+  facts = facts.filter((fact) => {
+    if (fact == 'Shadows of Anarchy') {
+      return false;
+    } else if (fact == 'Bladeburners') {
+      return false;
+    }
+    return true;
+  });
+  return facts;
+}
+
 // // There is currently no way to get the contract success chance for sleeves, this is my current progress of reverse
 // // engineering my own from the source code
 // class bbAction {
