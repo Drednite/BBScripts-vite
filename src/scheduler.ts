@@ -12,8 +12,8 @@ export async function main(ns: NS) {
         await ns.sleep(1000);
       }
     }
-    const time = new Date();
-    ns.printf('[%2d:%2d:%2d]', time.getHours, time.getMinutes, time.getSeconds);
+
+    ns.print(new Date().toLocaleTimeString());
     await ns.sleep(600000);
   }
 }
