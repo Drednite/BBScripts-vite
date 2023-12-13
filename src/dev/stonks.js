@@ -10,11 +10,11 @@ const height = 1000;
 let g_tixMode = false; // Global variable indicating if we have full 4S data or not (it is automatically
 // set/determined later in script no point changing the value here)
 let SHORTS; // Global to determine whether or not we have access to shorts (this is updated at the start of the script)
-const min_reserve = 1_000_000_000;
+const min_reserve = 0;
 let reserve = min_reserve;
 
 const LOG_SIZE = 15; // How many prices we keep in the log for blind/pre-4S trading for each symbol
-const BIAS = 5; // How many of the most recent changes should be more heavily weighted
+const BIAS = 0; // How many of the most recent changes should be more heavily weighted
 const BUY_TRIGGER = 0.1; // deviation from 0.5 (neutral) from which we start buying
 const SELL_TRIGGER = 0.01; // deviation from 0.5 (neutral) from which we start selling
 const TRANSACTION_COST = 100_000; // Cost of a stock transaction

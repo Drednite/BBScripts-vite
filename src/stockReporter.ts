@@ -154,8 +154,8 @@ export async function main(ns: NS) {
       const position =
         (Math.max(stock.currentPosition[1], stock.currentPosition[3]) - stock.lowestPrice) /
         (stock.highestPrice - stock.lowestPrice);
-      const bar = makeBar(rowSize - 24, perc, position, stock.currentPosition[3] > 0);
-      ns.printf('│ %5s | %8s %s %s', stock.name, '$' + ns.formatNumber(stock.currentPrice, 2), '[' + bar + ']', tend);
+      const bar = makeBar(rowSize - 23, perc, position, stock.currentPosition[3] > 0);
+      ns.printf('│ %5s | %8s %s%s', stock.name, '$' + ns.formatNumber(stock.currentPrice, 2), '[' + bar + ']', tend);
     }
     ns.printf("└%'─7s┴%'─-" + (rowSize - 11) + 's┘', '', '');
 
