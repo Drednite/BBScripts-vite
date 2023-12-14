@@ -102,14 +102,7 @@ export async function main(ns: NS) {
       stocks.push(new Stock(sym));
     }
   }
-  stocks.sort((a, b) => {
-    return (
-      a.name.charCodeAt(0) * 100 -
-      b.name.charCodeAt(0) * 100 +
-      (a.name.charCodeAt(1) * 10 - b.name.charCodeAt(1) * 10) +
-      (a.name.charCodeAt(3) - b.name.charCodeAt(3))
-    );
-  });
+  stocks.sort((a, b) => (a.name > b.name ? 1 : -1));
   let rowSize = 34;
   if (typeof flags.width == 'number') {
     rowSize = Math.max(flags.width, 34);
