@@ -14,7 +14,7 @@ export async function main(ns: NS) {
   const whip = ['whip.js'];
   if (mults.ScriptHackMoneyGain > 0 && Date.now() - ns.getResetInfo().lastAugReset < 1.8e6) {
     startList.push(whip);
-  } else if (mults.ScriptHackMoney > 0 && Date.now() - ns.getResetInfo().lastAugReset < 1.8e6) {
+  } else if (mults.ScriptHackMoney > 0) {
     whip.push('-k');
     if (ns.getServerMaxRam('home') < 1024) {
       whip.push('-h');
@@ -24,6 +24,9 @@ export async function main(ns: NS) {
       startList.push('stonks.js');
       startList.push('stockReporter.js');
       worker.push('-s');
+      if (mults.CompanyWorkMoney == 0 && mults.ScriptHackMoneyGain == 0 && mults.BladeburnerRank == 0) {
+        worker.push('--stockEx');
+      }
     }
   } else if (ns.stock.hasWSEAccount() && ns.stock.hasTIXAPIAccess()) {
     startList.push('stonks.js');
@@ -32,6 +35,9 @@ export async function main(ns: NS) {
     if (mults.CompanyWorkMoney == 0 && mults.ScriptHackMoneyGain == 0 && mults.BladeburnerRank == 0) {
       worker.push('--stockEx');
     }
+  }
+  if (augments.includes('nickofolas Congruity Implant')) {
+    worker.push('--graft');
   }
   if (mults.GangSoftcap > 0) {
     worker.push('-g');
