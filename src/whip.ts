@@ -2,9 +2,9 @@ import { AutocompleteData, NS } from '@ns';
 
 const argsSchema: [string, string | number | boolean | string[]][] = [
   ['k', false],
+  ['h', false],
   ['nextUpg', 6],
   ['name', 'serf'],
-  // ["costMult", 10],
   ['waitTime', 1000],
 ];
 export function autocomplete(data: AutocompleteData) {
@@ -36,6 +36,12 @@ export async function main(ns: NS) {
   let upgradeCost;
   ns.moveTail(0, 0);
   ns.resizeTail(250, 300);
+  if (flags.h) {
+    while (ns.getServerMaxRam('home') < MAXHOMERAM) {
+      upgradeCost = Math.min(ns.singularity.getUpgradeHomeRamCost(), ns.singularity.getUpgradeHomeCoresCost());
+      await upgradeHome(ns, upgradeCost);
+    }
+  }
   ns.print('Getting Dark Web access...');
   while (!ns.singularity.purchaseTor()) {
     await ns.sleep(waitTime);
