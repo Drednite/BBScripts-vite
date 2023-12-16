@@ -5,25 +5,33 @@ export async function main(ns: NS) {
   const mults = ns.getBitNodeMultipliers();
   ns.tprint(ns.read('notes.txt'));
   // eslint-disable-next-line prettier/prettier
-  const startList: (string | string[])[] = [
+  const startList: (string | (string | number)[])[] = [
     ['crawler.js', '--daemon', '--share', '-o']
   ];
   const augments = ns.singularity.getOwnedAugmentations();
   const worker = ['worker.js'];
-  const sleeve = ['dev/sleeve.js'];
+  const sleeve: (string | number)[] = ['dev/sleeve.js'];
+  const whip = ['whip.js'];
   if (mults.ScriptHackMoneyGain > 0 && Date.now() - ns.getResetInfo().lastAugReset < 1.8e6) {
-    startList.push('whip.js');
+    startList.push(whip);
   } else if (mults.ScriptHackMoney > 0 && Date.now() - ns.getResetInfo().lastAugReset < 1.8e6) {
-    startList.push(['whip.js', '-k']);
-    if (ns.stock.hasWSEAccount() && ns.stock.has4SDataTIXAPI()) {
-      startList.push('dev/stonks.js');
+    whip.push('-k');
+    if (ns.getServerMaxRam('home') < 1024) {
+      whip.push('-h');
+    }
+    startList.push(whip);
+    if (ns.stock.hasWSEAccount() && ns.stock.hasTIXAPIAccess()) {
+      startList.push('stonks.js');
       startList.push('stockReporter.js');
       worker.push('-s');
     }
-  } else if (ns.stock.hasWSEAccount() && ns.stock.has4SDataTIXAPI()) {
-    startList.push('dev/stonks.js');
+  } else if (ns.stock.hasWSEAccount() && ns.stock.hasTIXAPIAccess()) {
+    startList.push('stonks.js');
     startList.push('stockReporter.js');
     worker.push('-s');
+    if (mults.CompanyWorkMoney == 0 && mults.ScriptHackMoneyGain == 0 && mults.BladeburnerRank == 0) {
+      worker.push('--stockEx');
+    }
   }
   if (mults.GangSoftcap > 0) {
     worker.push('-g');
@@ -48,6 +56,9 @@ export async function main(ns: NS) {
     startList.push(worker);
   }
 
+  if (mults.CrimeMoney == 0) {
+    sleeve.push('--aug-budget', 0.01);
+  }
   if (mults.HacknetNodeMoney > 0) {
     let hacknet: string | string[] = ['hacknet.js'];
     if (mults.CodingContractMoney > 0) {
@@ -80,7 +91,7 @@ export async function main(ns: NS) {
     } else {
       const script = call[0];
       const args = call.slice(1);
-      ns.run(script, 1, ...args);
+      ns.run(script.toString(), 1, ...args);
     }
   });
 }

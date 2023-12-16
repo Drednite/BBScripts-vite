@@ -1,4 +1,5 @@
-import { DefaultStyle, PrintTable } from './tables';
+import { NS } from '@ns';
+import { DefaultStyle, PrintTable } from './dev/tables';
 
 export function autocomplete() {
   return ['sell'];
@@ -6,10 +7,10 @@ export function autocomplete() {
 
 let getTail;
 const width = 900;
-const height = 1000;
+const height = 1100;
 let g_tixMode = false; // Global variable indicating if we have full 4S data or not (it is automatically
 // set/determined later in script no point changing the value here)
-let SHORTS; // Global to determine whether or not we have access to shorts (this is updated at the start of the script)
+let SHORTS: boolean; // Global to determine whether or not we have access to shorts (this is updated at the start of the script)
 const min_reserve = 0;
 let reserve = min_reserve;
 
@@ -21,6 +22,7 @@ const TRANSACTION_COST = 100_000; // Cost of a stock transaction
 const MIN_TRANSACTION_SIZE = 5_000_000; // Minimum amount of stocks to buy, we need this to keep the transaction cost in check
 const TIME_TRACKING = false; // True if we're benchmarking our performance
 const BENCH_TIME = 1000 * 60 * 60; // How long we wait before reporting profitability
+const TRADE_LOGS: string[] = [];
 
 // Little representation of what this script does
 // | <---------------------------- SHORTS | LONGS ------------------------------>|
@@ -29,9 +31,9 @@ const BENCH_TIME = 1000 * 60 * 60; // How long we wait before reporting profitab
 //                  <<< BUY     SELL >>>     <<< SELL      BUY >>>
 
 /** @param {NS} ns **/
-export async function main(ns) {
+export async function main(ns: NS) {
   ns.disableLog('ALL');
-  getTail = false;
+  getTail = true;
   let initialFunds = ns.getServerMoneyAvailable('home');
 
   // This code determines if we have access to shorts or not
@@ -70,8 +72,8 @@ export async function main(ns) {
   if (ns.args[0] != 'sell') null; //ns.tail();
   else {
     // Passing sell to the script sells all the stocks and kills any other running scripts, then exists
-    let procs = ns.ps();
-    for (let proc of procs) {
+    const procs = ns.ps();
+    for (const proc of procs) {
       if (proc.filename == ns.getScriptName() && proc.args.length == 0) {
         ns.tprint('WARN: Killing stonks.js!');
         ns.kill(proc.pid);
@@ -81,7 +83,7 @@ export async function main(ns) {
   }
 
   // Array that will contain all symbols, we build it once and update it every tick
-  let stonks = [];
+  const stonks: Stonk[] = [];
 
   let started = performance.now();
 
@@ -94,19 +96,19 @@ export async function main(ns) {
       getTail = false;
     }
     ns.clearLog();
-    if (!g_tixMode && ns.stock.has4SDataTixApi) g_tixMode = true; // Switch to 4S data if we obtained it while running
+    if (!g_tixMode && ns.stock.has4SDataTIXAPI()) g_tixMode = true; // Switch to 4S data if we obtained it while running
 
     // Update our market log
     TakeSnapshot(ns, stonks);
 
     // Sort by forecast (for display purposes)
-    let longs = stonks.map((s) => s).sort((a, b) => b.forecast - a.forecast);
+    const longs = stonks.map((s) => s).sort((a, b) => b.forecast - a.forecast);
 
     // If it's been an hour, report progress
     if (TIME_TRACKING && performance.now() - started > BENCH_TIME) {
       // Dump every stock
       SellStonks(ns, longs, true);
-      let balance = ns.getServerMoneyAvailable('home');
+      const balance = ns.getServerMoneyAvailable('home');
       //let balance = GetStonksBalance(ns);
       ns.tprint(
         "FAIL: It's been an hour and the current balance is $" +
@@ -132,18 +134,28 @@ export async function main(ns) {
       return;
     }
 
+    if (!g_tixMode && ns.getServerMoneyAvailable('home') > ns.stock.getConstants().MarketDataTixApi4SCost) {
+      ns.stock.purchase4SMarketDataTixApi();
+    }
+
     // Buy stocks that meet our criterion
     BuyStonks(ns, longs);
+
+    while (TRADE_LOGS.length > 10) {
+      TRADE_LOGS.shift();
+    }
+    for (const trade of TRADE_LOGS) {
+      ns.print(trade);
+    }
 
     // Display our last snapshot of the stocks data to the user
     ReportCurrentSnapshot(ns, longs);
 
-    // 1 second ticks, we don't have any special treatment for bonus time
     await ns.stock.nextUpdate();
   }
 }
 
-function SellStonks(ns, log, dump) {
+function SellStonks(ns: NS, log: Stonk[], dump: boolean) {
   // *********************************
   // ***         LONGS
   // *********************************
@@ -168,8 +180,7 @@ function SellStonks(ns, log, dump) {
       continue;
     }
 
-    const date = new Date();
-    ns.print(
+    TRADE_LOGS.push(
       'WARN: Selling ' +
         ns.formatNumber(stonk.nbShares) +
         ' LONG shares of ' +
@@ -179,11 +190,7 @@ function SellStonks(ns, log, dump) {
         ' ($' +
         ns.formatNumber(stonk.GetProfit()) +
         ' profit) [' +
-        date.getHours() +
-        ':' +
-        date.getMinutes() +
-        ':' +
-        date.getSeconds() +
+        new Date().toLocaleTimeString() +
         ']',
     );
     if (dump)
@@ -227,7 +234,7 @@ function SellStonks(ns, log, dump) {
       }
 
       const date = new Date();
-      ns.print(
+      TRADE_LOGS.push(
         'WARN: Selling ' +
           ns.formatNumber(stonk.nbShorts) +
           ' SHORT shares of ' +
@@ -237,11 +244,7 @@ function SellStonks(ns, log, dump) {
           ' ($' +
           ns.formatNumber(stonk.GetProfit()) +
           ' profit) [' +
-          date.getHours() +
-          ':' +
-          date.getMinutes() +
-          ':' +
-          date.getSeconds() +
+          new Date().toLocaleTimeString() +
           ']',
       );
       if (dump)
@@ -269,14 +272,14 @@ function SellStonks(ns, log, dump) {
 }
 
 /** @param {NS} ns */
-function BuyStonks(ns, log) {
+function BuyStonks(ns: NS, log: Stonk[]) {
   // If you're buying Long, you want Ask price. Long stocks sell for Bid price.
   // If you're buying Short, you want Bid price. Short stocks sell for Ask price.
 
   let budget = ns.getServerMoneyAvailable('home') - reserve;
   if (budget < reserve) return;
 
-  let stonks = log
+  const stonks = log
     .map((s) => s)
     .filter((p) => p.normalizedForecast >= 0.5 + BUY_TRIGGER)
     .sort((a, b) => b.normalizedForecast - a.normalizedForecast);
@@ -295,13 +298,13 @@ function BuyStonks(ns, log) {
     let maxShares = ns.stock.getMaxShares(stonk.sym) - stonk.nbShares - stonk.nbShorts;
     // Clamp to the amount of cash we have available total
 
-    let sharePrice = stonk.forecast < 0.5 ? stonk.bidPrice : stonk.askPrice;
+    const sharePrice = stonk.forecast < 0.5 ? stonk.bidPrice : stonk.askPrice;
     maxShares = Math.min(maxShares, Math.floor((budget - TRANSACTION_COST) / sharePrice));
 
     // We broke!
     if (maxShares <= 0) continue;
 
-    let totalPrice = maxShares * sharePrice + TRANSACTION_COST;
+    const totalPrice = maxShares * sharePrice + TRANSACTION_COST;
     if (totalPrice < MIN_TRANSACTION_SIZE) continue;
     if (totalPrice > budget) {
       ns.print('Budget is : ' + ns.formatNumber(budget) + ' and price is $' + ns.formatNumber(totalPrice));
@@ -309,8 +312,7 @@ function BuyStonks(ns, log) {
     }
 
     // Buy some stocks!
-    const date = new Date();
-    ns.print(
+    TRADE_LOGS.push(
       'INFO: Buying ' +
         ns.formatNumber(maxShares) +
         ' ' +
@@ -320,23 +322,19 @@ function BuyStonks(ns, log) {
         ' at price $' +
         ns.formatNumber(maxShares * sharePrice) +
         ' [' +
-        date.getHours() +
-        ':' +
-        date.getMinutes() +
-        ':' +
-        date.getSeconds() +
+        new Date().toLocaleTimeString() +
         ']',
     );
 
     if (stonk.forecast < 0.5 && !SHORTS) continue;
 
-    let spent =
+    const spent =
       stonk.forecast < 0.5 ? ns.stock.buyShort(stonk.sym, maxShares) : ns.stock.buyStock(stonk.sym, maxShares);
     budget -= maxShares * spent + TRANSACTION_COST;
   }
 }
 
-function TakeSnapshot(ns, stonks) {
+function TakeSnapshot(ns: NS, stonks: Stonk[]) {
   const symbols = ns.stock.getSymbols();
   for (const sym of symbols) {
     let entry = stonks.find((p) => p.sym == sym);
@@ -348,7 +346,7 @@ function TakeSnapshot(ns, stonks) {
   }
 }
 
-function ForecastToGraph(forecast) {
+function ForecastToGraph(forecast: number) {
   if (forecast >= 0.9) return { color: '#00FF00', text: '+++++' };
   if (forecast >= 0.8) return { color: '#00EE00', text: '++++' };
   if (forecast >= 0.7) return { color: '#00DD00', text: '+++' };
@@ -368,7 +366,7 @@ function ForecastToGraph(forecast) {
   return { color: '#00FF00', text: '------' };
 }
 
-function ReportCurrentSnapshot(ns, stonks) {
+function ReportCurrentSnapshot(ns: NS, stonks: Stonk[]) {
   const columns = [
     { header: ' SYM', width: 7 },
     { header: ' Type', width: 7 },
@@ -385,7 +383,7 @@ function ReportCurrentSnapshot(ns, stonks) {
   const data = [];
 
   const sum = [0, 0, 0, 0];
-  let foreDiff = 0;
+  // let foreDiff = 0;
 
   for (const stonk of stonks) {
     total.nbShares += stonk.nbShares;
@@ -393,13 +391,13 @@ function ReportCurrentSnapshot(ns, stonks) {
     total.paid += stonk.GetPricePaid();
     total.profit += stonk.GetProfit();
 
-    let forecast = stonk.forecast == 'N/A' ? stonk.forecast : stonk.forecast.toFixed(4);
-    if (g_tixMode && stonk.snapshots.length == LOG_SIZE && (stonk.nbShares || stonk.nbShorts)) {
-      ns.printf('%s FDiff: %.4g', stonk.sym, forecast - stonk.calcForecast);
-    }
-    foreDiff += forecast - stonk.calcForecast;
+    const forecast = stonk.forecast.toFixed(4);
+    // if (g_tixMode && stonk.snapshots.length == LOG_SIZE && (stonk.nbShares || stonk.nbShorts)) {
+    //   ns.printf('%s FDiff: %.4g', stonk.sym, stonk.forecast - stonk.calcForecast);
+    // }
+    // foreDiff += stonk.forecast - stonk.calcForecast;
 
-    let line = [];
+    const line = [];
 
     line.push({ color: 'white', text: ' ' + stonk.sym });
     line.push({ color: 'white', text: stonk.forecast >= 0.5 ? ' Long' : ' Short' });
@@ -410,7 +408,7 @@ function ReportCurrentSnapshot(ns, stonks) {
     line.push({ color: 'white', text: ns.formatNumber(stonk.GetValue()).padStart(9) });
     line.push({ color: 'white', text: ns.formatNumber(stonk.GetProfit()).padStart(9) });
 
-    let pct = (stonk.GetProfit() / stonk.GetPricePaid()) * 100;
+    let pct: number | string = (stonk.GetProfit() / stonk.GetPricePaid()) * 100;
     if (isNaN(pct)) pct = 0;
     if (pct == 0) pct = '';
     else pct = ns.formatNumber(pct).padStart(7);
@@ -425,15 +423,15 @@ function ReportCurrentSnapshot(ns, stonks) {
     data.push(line);
   }
 
-  foreDiff /= stonks.length;
-  if (g_tixMode && stonks[0].snapshots.length < LOG_SIZE) {
-    ns.printf('Filling logs: %d/%d', stonks[0].snapshots.length, LOG_SIZE);
-  } else if (g_tixMode) {
-    ns.printf('Average FDiff: %.3g', foreDiff);
-  }
+  // foreDiff /= stonks.length;
+  // if (g_tixMode && stonks[0].snapshots.length < LOG_SIZE) {
+  //   ns.printf('Filling logs: %d/%d', stonks[0].snapshots.length, LOG_SIZE);
+  // } else if (g_tixMode) {
+  //   ns.printf('Average FDiff: %.3g', foreDiff);
+  // }
   data.push(null);
 
-  let pct = (sum[3] / sum[2]) * 100;
+  let pct: number | string = (sum[3] / sum[2]) * 100;
   if (isNaN(pct)) pct = 0;
   if (pct == 0) pct = '';
   else pct = ns.formatNumber(pct).padStart(7);
@@ -452,7 +450,7 @@ function ReportCurrentSnapshot(ns, stonks) {
 
   PrintTable(ns, data, columns, DefaultStyle(), ns.print);
 
-  let totalWorth = total.paid + total.profit + ns.getServerMoneyAvailable('home');
+  const totalWorth = total.paid + total.profit + ns.getServerMoneyAvailable('home');
   reserve = Math.max(totalWorth * 0.001, min_reserve);
   if (!g_tixMode && totalWorth > ns.stock.getConstants().MarketDataTixApi4SCost) {
     reserve = ns.stock.getConstants().MarketDataTixApi4SCost;
@@ -472,7 +470,7 @@ function ReportCurrentSnapshot(ns, stonks) {
     );
 }
 
-function UpdateHud(ns, totalWorth) {
+function UpdateHud(ns: NS, totalWorth?: number) {
   const doc = eval('document');
   const hook0 = doc.getElementById('overview-extra-hook-0');
   const hook1 = doc.getElementById('overview-extra-hook-1');
@@ -501,11 +499,27 @@ function UpdateHud(ns, totalWorth) {
 }
 
 export class Stonk {
-  constructor(ns, name) {
+  forecast!: number;
+  nbShares!: number;
+  snapshots: number[];
+  sym: string;
+  nbShorts!: number;
+  ns: NS;
+  askPrice!: number;
+  bidPrice!: number;
+  price!: number;
+  maxShares!: number;
+  avgPrice!: number;
+  avgShortPrice!: number;
+  calcForecast!: number;
+  normalizedForecast!: number;
+
+  constructor(ns: NS, name: string) {
     this.ns = ns;
 
     this.sym = name;
     this.snapshots = [];
+    this.Update();
   }
 
   Update() {
@@ -533,8 +547,8 @@ export class Stonk {
     // Recound the ups and downs for pre-4S forecast estimation
     let nbUp = 0;
     for (let i = 1; i < this.snapshots.length; i++) {
-      let prev = this.snapshots[i - 1];
-      let cur = this.snapshots[i];
+      const prev = this.snapshots[i - 1];
+      const cur = this.snapshots[i];
 
       if (prev < cur) {
         nbUp++;
@@ -557,29 +571,29 @@ export class Stonk {
       this.forecast = this.calcForecast;
     }
 
-    if (this.forecast != 'N/A') {
+    if (this.forecast != null) {
       this.normalizedForecast = this.forecast;
       if (this.forecast < 0.5) this.normalizedForecast = 1 - this.forecast;
     } else this.normalizedForecast = 0;
   }
 
   GetPricePaid() {
-    let longCost = this.nbShares * this.avgPrice;
-    let shortCost = this.nbShorts * this.avgShortPrice;
+    const longCost = this.nbShares * this.avgPrice;
+    const shortCost = this.nbShorts * this.avgShortPrice;
     return longCost + shortCost;
   }
 
   GetProfit() {
     // Short stocks sell for Ask price.
     // Long stocks sell for Bid price.
-    let longProfit = this.nbShares * this.bidPrice - this.nbShares * this.avgPrice;
-    let shortProfit = this.nbShorts * this.avgShortPrice - this.nbShorts * this.askPrice;
+    const longProfit = this.nbShares * this.bidPrice - this.nbShares * this.avgPrice;
+    const shortProfit = this.nbShorts * this.avgShortPrice - this.nbShorts * this.askPrice;
     return longProfit + shortProfit;
   }
 
   GetValue() {
-    let longCost = this.nbShares * this.bidPrice;
-    let shortCost = this.nbShorts * this.askPrice;
+    const longCost = this.nbShares * this.bidPrice;
+    const shortCost = this.nbShorts * this.askPrice;
     return longCost + shortCost;
   }
 }
