@@ -846,6 +846,11 @@ async function factionWork(ns: NS, faction: string, repTarget = 0) {
     return false;
   }
   const curr = sin.getCurrentWork();
+  if (focus && !sin.isFocused()) {
+    focus = false;
+  } else if (!focus && sin.isFocused()) {
+    focus = true;
+  }
   if (curr && curr.type == 'FACTION' && curr.factionName == faction) {
     return true;
   }
@@ -869,7 +874,7 @@ async function factionWork(ns: NS, faction: string, repTarget = 0) {
   while (sin.getFactionRep(faction) < repTarget) {
     ns.setTitle(
       ns.sprintf(
-        'Faction Work: %s %s [%s/%s]',
+        '%s %s [%s/%s]',
         faction,
         bestWork,
         ns.formatNumber(sin.getFactionRep(faction)),
@@ -1022,12 +1027,13 @@ async function stockWorker(ns: NS, keep?: boolean) {
           await ns.sleep(waitTime);
           sin.applyToCompany(company, 'Software');
         }
-        sin.stopAction();
       } else {
+        manageInvites(ns);
         await factionWork(ns, workableFactions(ns).sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
         await st.nextUpdate();
       }
     } else {
+      manageInvites(ns);
       await factionWork(ns, workableFactions(ns).sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
     }
     await st.nextUpdate();
