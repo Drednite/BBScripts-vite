@@ -7,5 +7,5 @@ export function autocomplete(data: AutocompleteData) {
 export async function main(ns: NS): Promise<void> {
   ns.tail();
 
-  ns.print(ns.singularity.isFocused());
+  ns.run('scheduler.js', { preventDuplicates: true });
 }

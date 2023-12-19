@@ -103,7 +103,7 @@ export async function main(ns: NS) {
       ns.print('Cost to upgrade ' + owned[i] + ': ' + ns.formatNumber(upgradeCost));
       if (upgradeCost > 1) {
         await upgradeHome(ns, upgradeCost * costMult);
-        await upgradeHacknet(ns, upgradeCost / 2 ** nextUpg, costMult);
+        await upgradeHacknet(ns, upgradeCost / (2 ** nextUpg - ns.getServerMaxRam(owned[i])), costMult);
         while (upgradeCost * costMult > ns.getServerMoneyAvailable('home')) {
           await wait(ns, waitTime);
         }
@@ -173,27 +173,27 @@ async function upgradeHacknet(ns: NS, costPerRAM: number, threshMult: number) {
       await wait(ns, 1000);
     }
     net.purchaseNode();
-    ns.writePort(16, 'hacknet_server-' + numNodes);
+    ns.writePort(16, 'hacknet-server-' + numNodes);
     numNodes++;
-  } else {
-    for (let i = 0; i < numNodes; i++) {
-      const node = net.getNodeStats(i);
-      let cost = net.getRamUpgradeCost(i) / node.ram;
-      if (cost < costPerRAM) {
-        ns.print('Upgrading node ' + i + ' RAM');
-        while (cost * threshMult > ns.getServerMoneyAvailable('home')) {
-          await wait(ns, 1000);
-        }
-        net.upgradeRam(i);
+  }
+  for (let i = 0; i < numNodes; i++) {
+    let cost = net.getRamUpgradeCost(i) / net.getNodeStats(i).ram;
+    while (cost < costPerRAM) {
+      ns.print('Upgrading node ' + i + ' RAM');
+      while (cost * threshMult > ns.getServerMoneyAvailable('home')) {
+        await wait(ns, 1000);
       }
+      net.upgradeRam(i);
+      cost = net.getRamUpgradeCost(i) / net.getNodeStats(i).ram;
+    }
+    cost = net.getCoreUpgradeCost(i);
+    while (cost < costPerRAM) {
+      ns.print('Upgrading node ' + i + ' Cores');
+      while (cost * threshMult > ns.getServerMoneyAvailable('home')) {
+        await wait(ns, 1000);
+      }
+      net.upgradeCore(i);
       cost = net.getCoreUpgradeCost(i);
-      if (cost < costPerRAM) {
-        ns.print('Upgrading node ' + i + ' Cores');
-        while (cost * threshMult > ns.getServerMoneyAvailable('home')) {
-          await wait(ns, 1000);
-        }
-        net.upgradeCore(i);
-      }
     }
   }
 }
