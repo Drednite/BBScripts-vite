@@ -5,13 +5,16 @@ export async function main(ns: NS) {
   const mults = ns.getBitNodeMultipliers();
   ns.tprint(ns.read('notes.txt'));
   // eslint-disable-next-line prettier/prettier
-  const startList: (string | (string | number)[])[] = [
-    ['crawler.js', '--daemon', '--share', '-o']
-  ];
+  const startList: (string | (string | number)[])[] = [];
+  const crawler = ['crawler.js', '--daemon', '--share', '-o'];
   const augments = ns.singularity.getOwnedAugmentations();
   const worker = ['worker.js'];
   const sleeve: (string | number)[] = ['dev/sleeve.js'];
   const whip = ['whip.js'];
+  if (mults.HacknetNodeMoney == 0) {
+    crawler.push('-h');
+  }
+  startList.push(crawler);
   if (mults.ScriptHackMoneyGain > 0 && Date.now() - ns.getResetInfo().lastAugReset < 1.8e6) {
     startList.push(whip);
   } else if (mults.ScriptHackMoney > 0) {
@@ -25,7 +28,7 @@ export async function main(ns: NS) {
       startList.push('stockReporter.js');
       worker.push('-s');
       if (mults.CompanyWorkMoney == 0 && mults.ScriptHackMoneyGain == 0 && mults.BladeburnerRank == 0) {
-        worker.push('--stockEx');
+        worker.push('--stockEx', '--graft');
       }
     }
   } else if (ns.stock.hasWSEAccount() && ns.stock.hasTIXAPIAccess()) {
@@ -36,7 +39,7 @@ export async function main(ns: NS) {
       worker.push('--stockEx');
     }
   }
-  if (augments.includes('nickofolas Congruity Implant')) {
+  if (augments.includes('nickofolas Congruity Implant') && !worker.includes('--graft')) {
     worker.push('--graft');
   }
   if (mults.GangSoftcap > 0) {
