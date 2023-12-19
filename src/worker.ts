@@ -16,10 +16,10 @@ import {
 } from './helpers';
 
 const argsSchema: [string, string | number | boolean | string[]][] = [
-  ['g', false], // whether or not to prioritize forming a gang
-  ['b', false], // whether or not to train to join BladeBurner division
-  ['e', false], // whether or not to work for megacorps to join their factions
-  ['s', false], // whether or not to work for companies to improve their stock forecast
+  ['g', false], // prioritize forming a gang
+  ['b', false], // train to join BladeBurner division
+  ['e', false], // work for megacorps to join their factions
+  ['s', false], // work for companies to improve their stock forecast
   ['stockEx', false], // exclusivesly work for companies to improve their stock
   ['graft', false], // graft augments
 ];
@@ -870,6 +870,7 @@ async function factionWork(ns: NS, faction: string, repTarget = 0) {
     }
   }
 
+  ns.setTitle('Fact Work: ' + faction + ' ' + bestWork);
   sin.workForFaction(faction, bestWork, focus);
   while (sin.getFactionRep(faction) < repTarget) {
     ns.setTitle(
@@ -1024,17 +1025,26 @@ async function stockWorker(ns: NS, keep?: boolean) {
             title.concat(' : ' + ns.formatPercent(st.getForecast(sym)));
           }
           ns.setTitle(title);
+          if (Date.now() - ns.getResetInfo().lastAugReset > 1.8e6) {
+            await grafting(ns, true, false);
+          }
           await ns.sleep(waitTime);
           sin.applyToCompany(company, 'Software');
         }
       } else {
         manageInvites(ns);
         await factionWork(ns, workableFactions(ns).sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
+        if (Date.now() - ns.getResetInfo().lastAugReset > 1.8e6) {
+          await grafting(ns, true, false);
+        }
         await st.nextUpdate();
       }
     } else {
       manageInvites(ns);
       await factionWork(ns, workableFactions(ns).sort((a, b) => sin.getFactionRep(a) - sin.getFactionRep(b))[0]);
+      if (Date.now() - ns.getResetInfo().lastAugReset > 1.8e6) {
+        await grafting(ns, true, false);
+      }
     }
     await st.nextUpdate();
   } while (keep);
