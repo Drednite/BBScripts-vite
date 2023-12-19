@@ -10,6 +10,7 @@ export async function main(ns: NS) {
   ns.writePort(1, pid ? pid : ns.getScriptName());
   ns.disableLog('ALL');
   const serverList = await getAllServers(ns);
+  let stockServers: string[] = [];
   powerlessServers = [];
   ns.moveTail(250, 0);
   ns.resizeTail(515, 300);
@@ -49,6 +50,7 @@ export async function main(ns: NS) {
           ns.getServerRequiredHackingLevel(serverList[i]) * 4,
       );
       targetList.push(serverList[i]);
+      stockServers.push(serverList[i]);
     }
   }
   ns.printf(">>%'=49s", '<<');
@@ -64,7 +66,7 @@ export async function main(ns: NS) {
       if (ns.getServerMaxRam(node) > 4 && !ns.isRunning('masterHack.js', host, node)) {
         ns.killall(node, true);
         await ns.sleep(60);
-        ns.run('masterHack.js', 1, node);
+        ns.run('masterHack.js', { preventDuplicates: true }, node);
         await ns.sleep(60);
       } else if (powerlessServers.length > 0) {
         const host = powerlessServers.shift();
@@ -74,6 +76,12 @@ export async function main(ns: NS) {
     if (targetList.length - i < powerlessServers.length) {
       const host = powerlessServers.shift();
       if (host) ns.run('masterHack.js', 1, node, host);
+    } else if (ns.stock.hasTIXAPIAccess() && stockServers.includes(node)) {
+      if (stockServers.length < powerlessServers.length) {
+        const host = powerlessServers.shift();
+        if (host) ns.run('masterHack.js', 1, node, host);
+      }
+      stockServers = stockServers.filter((a) => a != node);
     }
   }
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
