@@ -2,17 +2,6 @@ import { AutocompleteData, NS } from '@ns';
 import { Color, colorPicker } from './helpers';
 
 const argsSchema: [string, string | number | boolean | string[]][] = [['width', 36]];
-const arrows = [
-  colorPicker('⟱', Color.magenta),
-  colorPicker('⤋', Color.magenta),
-  colorPicker('⇓', Color.magenta),
-  colorPicker('↓', Color.white),
-  colorPicker('↕', Color.white),
-  colorPicker('↑', Color.white),
-  colorPicker('⇑', Color.green),
-  colorPicker('⤊', Color.green),
-  colorPicker('⟰', Color.green),
-];
 
 export function autocomplete(data: AutocompleteData) {
   data.flags(argsSchema);
@@ -72,9 +61,15 @@ export async function main(ns: NS) {
 
     Update() {
       this.currentPrice = st.getPrice(this.name);
-      if (this.currentPrice > this.highestPrice) this.highestPrice = this.currentPrice;
-      if (this.currentPrice < this.lowestPrice) this.lowestPrice = this.currentPrice;
       this.currentPosition = st.getPosition(this.name);
+      if (this.currentPrice < (this.highestPrice + this.lowestPrice) / 2)
+        this.highestPrice -= 0.001 * (this.highestPrice - this.lowestPrice);
+      else this.lowestPrice += 0.001 * (this.highestPrice - this.lowestPrice);
+      if (this.currentPrice > this.highestPrice) this.highestPrice = this.currentPrice + 1;
+      const paid = Math.max(this.currentPosition[1], this.currentPosition[3]);
+      if (paid > 0 && paid > this.highestPrice) this.highestPrice = paid + 1;
+      if (this.currentPrice < this.lowestPrice) this.lowestPrice = this.currentPrice - 1;
+      if (paid > 0 && paid < this.lowestPrice) this.lowestPrice = paid - 1;
     }
   }
   ns.atExit(() => {
@@ -129,15 +124,17 @@ export async function main(ns: NS) {
       let tend = '│';
       if (has4S) {
         const forecast = st.getForecast(stock.name);
-        if (forecast <= 0.3) tend = arrows[0];
-        else if (forecast <= 0.35) tend = arrows[1];
-        else if (forecast <= 0.4) tend = arrows[2];
-        else if (forecast <= 0.45) tend = arrows[3];
-        else if (forecast <= 0.55) tend = arrows[4];
-        else if (forecast <= 0.6) tend = arrows[5];
-        else if (forecast <= 0.65) tend = arrows[6];
-        else if (forecast <= 0.7) tend = arrows[7];
-        else tend = arrows[8];
+        if (forecast <= 0.25) tend = colorPicker('⟱', Color.magenta);
+        else if (forecast <= 0.3) tend = colorPicker('⤋', Color.magenta);
+        else if (forecast <= 0.35) tend = colorPicker('⇓', Color.magenta);
+        else if (forecast <= 0.4) tend = colorPicker('↓', Color.magenta);
+        else if (forecast <= 0.45) tend = colorPicker('↓', Color.white);
+        else if (forecast <= 0.55) tend = colorPicker('↕', Color.white);
+        else if (forecast <= 0.6) tend = colorPicker('↑', Color.white);
+        else if (forecast <= 0.65) tend = colorPicker('↑', Color.green);
+        else if (forecast <= 0.7) tend = colorPicker('⇑', Color.green);
+        else if (forecast <= 0.75) tend = colorPicker('⤊', Color.green);
+        else tend = colorPicker('⟰', Color.green);
       } else if (st.purchase4SMarketDataTixApi()) {
         ns.print('SUCCESS: 4S TIX API purchased');
         has4S = true;
@@ -156,11 +153,11 @@ export async function main(ns: NS) {
   }
 }
 
-function makeBar(size: number, percent: number, position?: number, short?: boolean) {
+function makeBar(size: number, percent: number, position: number, short?: boolean) {
   let bar = '';
-  if (!position) {
-    position = -1;
-  }
+  // if (position < 0) {
+  //   position = -1;
+  // }
   let pos = 0;
   for (let i = 0; i < size; i++) {
     if (position >= (i / size + (i + 1) / size) / 2) {
@@ -172,7 +169,7 @@ function makeBar(size: number, percent: number, position?: number, short?: boole
       bar += '▓';
     }
   }
-  if (position > 0) {
+  if (position >= 0) {
     if (short) {
       bar =
         bar.slice(0, pos).replaceAll('░', colorPicker('░', Color.green)) +
